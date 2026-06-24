@@ -457,13 +457,16 @@ class MeshManager:
 
                     try:
                         from app.services.voice.always_listening_loop import (
-                            transcribe, query_council,
+                            transcribe, query_council, set_mesh_relay_active,
                         )
                         from app.services.voice.reflex_router import match as _social
                         from app.services.reflex.reflex_router import route as _sys
                         from app.services.voice.conversation_buffer import SentenceValidator
 
                         validator = SentenceValidator()
+
+                        # Lock desktop voice loop — prevent double response
+                        set_mesh_relay_active(True)
 
                         # STT
                         text = transcribe(wav_bytes)
@@ -483,6 +486,7 @@ class MeshManager:
 
                         log.info("  Device answer: %r", answer[:80])
                         self._send(200, {"text": answer, "utterance": text})
+                        set_mesh_relay_active(False)
 
                         # Also push to device listener so it speaks immediately
                         # (in parallel — don't block the response)
@@ -496,6 +500,10 @@ class MeshManager:
 
                     except Exception as e:
                         log.error("Voice relay processing error: %s", e)
+                        try:
+                            set_mesh_relay_active(False)
+                        except Exception:
+                            pass
                         self._send(500, {"error": str(e), "utterance": ""})
                     return
 

@@ -297,6 +297,21 @@ def transcribe(wav_bytes: bytes) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────
+# Mesh relay lock — when a remote device is processing a query via
+# /mesh/voice, suppress the desktop voice loop to prevent double responses.
+# ─────────────────────────────────────────────────────────────────
+
+_mesh_relay_active = threading.Event()   # set by mesh_manager during /mesh/voice
+
+
+def set_mesh_relay_active(active: bool) -> None:
+    if active:
+        _mesh_relay_active.set()
+    else:
+        _mesh_relay_active.clear()
+
+
+# ─────────────────────────────────────────────────────────────────
 # Council
 # ─────────────────────────────────────────────────────────────────
 
@@ -960,6 +975,12 @@ class AlwaysListeningLoop:
             get_presence_engine().record_microphone()
         except Exception:
             pass
+
+        # ── 3. Skip if a remote device is handling this utterance ─────────
+        if _mesh_relay_active.is_set():
+            log.debug("Mesh relay active — desktop skipping this utterance")
+            self._set_state(ServiceState.WAIT_FOR_SPEECH)
+            return
 
         # ── 3. Control commands ────────────────────────────────────────────
         clean = text.strip().lower().rstrip(".!?,; ")
