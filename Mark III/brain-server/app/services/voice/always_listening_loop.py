@@ -297,11 +297,36 @@ def transcribe(wav_bytes: bytes) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────
-# Mesh relay lock — when a remote device is processing a query via
-# /mesh/voice, suppress the desktop voice loop to prevent double responses.
+# Voice mode — which device is the active voice interface.
+#
+#   "desktop"  — K66 listens, Piper speaks  (default)
+#   device_id  — that device listens+speaks, desktop is silent processor
+#
+# The desktop NEVER speaks in remote mode. It only processes /mesh/voice
+# requests and returns text. The remote device handles all TTS.
 # ─────────────────────────────────────────────────────────────────
 
-_mesh_relay_active = threading.Event()   # set by mesh_manager during /mesh/voice
+_active_voice_device: str = "desktop"   # "desktop" or a mesh device_id
+_voice_mode_lock = threading.Lock()
+
+
+def get_active_voice_device() -> str:
+    return _active_voice_device
+
+
+def set_active_voice_device(device_id: str) -> None:
+    global _active_voice_device
+    with _voice_mode_lock:
+        _active_voice_device = device_id
+    log.info("Voice mode → %s", device_id)
+
+
+def is_desktop_active() -> bool:
+    return _active_voice_device == "desktop"
+
+
+# Legacy relay lock — kept for compatibility, now delegates to voice mode
+_mesh_relay_active = threading.Event()
 
 
 def set_mesh_relay_active(active: bool) -> None:
@@ -309,6 +334,42 @@ def set_mesh_relay_active(active: bool) -> None:
         _mesh_relay_active.set()
     else:
         _mesh_relay_active.clear()
+
+
+# ─── Shift command parser ─────────────────────────────────────────────────────
+
+import re as _shift_re
+
+_SHIFT_RE = _shift_re.compile(
+    r"\b(shift|move|switch|transfer|continue|use|using|go)\b.{0,15}"
+    r"\b(?P<target>mac(book)?|desktop|windows|pc|laptop|iphone|phone|watch)\b"
+    r"|\bim?\s+(using|on)\s+(my\s+)?(?P<target2>mac(book)?|desktop|pc|iphone|phone)\b"
+    r"|\bmark\s+im?\s+(using|on)\s+(my\s+)?(?P<target3>mac(book)?|desktop|pc)\b"
+    r"|\b(?P<target4>mac(book)?|desktop|pc)\s+(mark|please)\b",
+    _shift_re.I,
+)
+
+_TARGET_MAP = {
+    "mac": "macbook", "macbook": "macbook", "laptop": "macbook",
+    "desktop": "desktop", "windows": "desktop", "pc": "desktop",
+    "iphone": "iphone", "phone": "iphone",
+    "watch": "watch",
+}
+
+
+def parse_shift_target(text: str) -> Optional[str]:
+    """
+    Return the device type to shift to ("macbook", "desktop", "iphone", …),
+    or None if the text is not a shift command.
+    """
+    m = _SHIFT_RE.search(text)
+    if not m:
+        return None
+    raw = (
+        m.group("target") or m.group("target2") or
+        m.group("target3") or m.group("target4") or ""
+    ).lower()
+    return _TARGET_MAP.get(raw)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -657,6 +718,62 @@ class AlwaysListeningLoop:
     # Startup greeting
     # ------------------------------------------------------------------
 
+    def _handle_voice_shift(self, target_type: str) -> None:
+        """
+        Switch voice mode to a different device or back to desktop.
+
+        Desktop mode  → K66 listens, Piper speaks.
+        Remote mode   → Desktop silent processor; remote device listens + speaks.
+        """
+        from app.services.mesh.mesh_manager import get_mesh_manager
+        from app.services.ai.local_qwen_provider import add_to_history
+
+        mgr = get_mesh_manager()
+
+        # ── Shift to desktop ──────────────────────────────────────────────
+        if target_type == "desktop":
+            if is_desktop_active():
+                self._tts.speak("Already on desktop.", threading.Event())
+                return
+            set_active_voice_device("desktop")
+            self._say_quick("Switching back to desktop. I'm listening here now.")
+            self._set_state(ServiceState.WAIT_FOR_SPEECH)
+            return
+
+        # ── Shift to a remote device ──────────────────────────────────────
+        # Find the device in the mesh
+        candidates = [
+            d for d in mgr.get_online_devices()
+            if target_type in d.type.lower() or target_type in d.name.lower()
+        ]
+
+        # Future: if multiple candidates, ask which one
+        if not candidates:
+            self._tts.speak(
+                f"No {target_type} is online in the mesh right now.", threading.Event()
+            )
+            return
+
+        # For now: pick the first (only one per type expected in Phase 16)
+        # Future Phase: prompt "Which one?" when multiple
+        target_dev = candidates[0]
+
+        # Transfer conversation history to target device
+        from app.services.mesh.mesh_manager import get_mesh_manager as _mgr
+        ok = _mgr().handoff_conversation(target_dev.device_id)
+
+        set_active_voice_device(target_dev.device_id)
+
+        ack = f"Switching to {target_dev.name}. Desktop going quiet — I'll process everything from there."
+        log.info("Voice mode shift → %s (id=%s)", target_dev.name, target_dev.device_id)
+
+        if not self.is_muted():
+            _beep(660, 0.07)
+            self._tts.speak(ack, threading.Event())
+
+        # Desktop now sleeps — only /mesh/voice wakes it to process
+        self._set_state(ServiceState.SLEEPING)
+
     @staticmethod
     def _build_recommendations(
         wd: dict | None,
@@ -976,18 +1093,16 @@ class AlwaysListeningLoop:
         except Exception:
             pass
 
-        # ── 3. Skip if a remote device is handling this utterance ─────────
-        if _mesh_relay_active.is_set():
-            log.debug("Mesh relay active — desktop skipping this utterance")
-            self._set_state(ServiceState.WAIT_FOR_SPEECH)
+        # ── 3. Desktop is silent processor — skip voice output ────────────
+        # When another device is the active voice interface, the desktop
+        # processes /mesh/voice requests but never speaks or listens here.
+        if not is_desktop_active():
+            log.debug("Desktop in processor mode — skipping local voice cycle")
+            self._set_state(ServiceState.SLEEPING)
             return
 
         # ── 3. Control commands ────────────────────────────────────────────
         clean = text.strip().lower().rstrip(".!?,; ")
-
-        # Wake desktop if it was sleeping due to handoff
-        if self._state == ServiceState.SLEEPING and clean not in {"sleep", "pause", "stop", "quiet"}:
-            self._set_state(ServiceState.WAIT_FOR_SPEECH)
 
         # Pause / stop → sleep until user says "Mark"
         _PAUSE_WORDS = {
@@ -1074,6 +1189,12 @@ class AlwaysListeningLoop:
 
         ds.answer_chars = len(answer)
         print(f"  MARK : {answer}{' [reflex]' if ds.reflex_used else ''}", flush=True)
+
+        # ── 5a. Shift voice mode ("use Mac", "I'm using desktop", etc.) ─────
+        shift_target = parse_shift_target(text)
+        if shift_target:
+            self._handle_voice_shift(shift_target)
+            return
 
         # ── 5b. Conversation handoff — "send to Mac / phone / watch" ──────
         handoff_m = _HANDOFF_RE.search(text)

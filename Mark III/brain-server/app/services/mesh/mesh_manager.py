@@ -474,6 +474,19 @@ class MeshManager:
 
                         if not text or validator.is_noise(text):
                             self._send(200, {"text": "", "utterance": text or ""})
+                            set_mesh_relay_active(False)
+                            return
+
+                        # Check for shift command from remote device
+                        from app.services.voice.always_listening_loop import (
+                            parse_shift_target, set_active_voice_device, is_desktop_active,
+                        )
+                        shift = parse_shift_target(text)
+                        if shift == "desktop":
+                            set_active_voice_device("desktop")
+                            ack = "Switching back to desktop. Desktop is now listening."
+                            self._send(200, {"text": ack, "utterance": text})
+                            set_mesh_relay_active(False)
                             return
 
                         # Reflex → Qwen/Council
