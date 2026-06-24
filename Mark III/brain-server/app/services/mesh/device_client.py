@@ -400,7 +400,7 @@ class MARKDeviceClient:
     # ── Heartbeat loop ─────────────────────────────────────────────────────────
 
     def _heartbeat_loop(self) -> None:
-        registered = True
+        registered = False   # start unregistered — register on first 404 or success
         while self._running:
             try:
                 import requests
@@ -412,11 +412,17 @@ class MARKDeviceClient:
                 r = requests.post(
                     f"{self._base}/mesh/heartbeat", json=payload, timeout=5
                 )
-                if r.status_code == 404 and not registered:
+                if r.status_code == 404:
+                    # Not registered — try to register regardless of flag
+                    log.info("Heartbeat 404 — re-registering with MARK Core ...")
                     registered = self._register()
                 elif r.status_code == 200:
+                    if not registered:
+                        log.info("Heartbeat OK — device is registered")
                     registered = True
                     log.debug("♥ battery=%s  active=%s", payload["battery"], payload["active"])
+                else:
+                    log.warning("Heartbeat HTTP %d", r.status_code)
             except Exception as e:
                 log.debug("Heartbeat error: %s", e)
             time.sleep(HEARTBEAT_INTERVAL_S)

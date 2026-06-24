@@ -5127,6 +5127,1336 @@
         "confidence": 0.65,
         "zone": "desk"
       }
+    },
+    {
+      "timestamp": "2026-06-24T23:19:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.492,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:20:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.475,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:21:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.372,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:22:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.376,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:23:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.429,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:24:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.466,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:25:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.308,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:26:04",
+      "state": "present",
+      "confidence": 0.63,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.9,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:27:04",
+      "state": "present",
+      "confidence": 0.63,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.713,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:28:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.399,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:29:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.383,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:30:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.414,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:31:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.486,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:32:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.494,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:33:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.271,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:34:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.299,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:35:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.715,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:36:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.301,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:37:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.859,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:38:04",
+      "state": "idle",
+      "confidence": 0.52,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "voice detected"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.9,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.459,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:39:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.388,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:40:04",
+      "state": "away",
+      "confidence": 0.244,
+      "present": false,
+      "evidence": [
+        "keyboard idle",
+        "voice detected"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.9,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.5,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:41:04",
+      "state": "idle",
+      "confidence": 0.355,
+      "present": true,
+      "evidence": [
+        "keyboard idle",
+        "voice detected",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.65,
+        "mic": 0.9,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.754,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:42:04",
+      "state": "away",
+      "confidence": 0.244,
+      "present": false,
+      "evidence": [
+        "keyboard idle",
+        "voice detected"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.9,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.362,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:43:04",
+      "state": "away",
+      "confidence": 0.11,
+      "present": false,
+      "evidence": [
+        "keyboard idle"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.346,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:44:04",
+      "state": "away",
+      "confidence": 0.11,
+      "present": false,
+      "evidence": [
+        "keyboard idle"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.487,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:45:04",
+      "state": "away",
+      "confidence": 0.11,
+      "present": false,
+      "evidence": [
+        "keyboard idle"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.453,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:46:04",
+      "state": "away",
+      "confidence": 0.22,
+      "present": false,
+      "evidence": [
+        "keyboard idle",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.769,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:47:04",
+      "state": "away",
+      "confidence": 0.11,
+      "present": false,
+      "evidence": [
+        "keyboard idle"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.458,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:48:04",
+      "state": "present",
+      "confidence": 0.63,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.902,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:49:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.241,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:50:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.493,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:51:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.269,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:52:04",
+      "state": "idle",
+      "confidence": 0.52,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "voice detected"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.9,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.224,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:53:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.721,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:54:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.205,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:55:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.717,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:56:04",
+      "state": "away",
+      "confidence": 0.11,
+      "present": false,
+      "evidence": [
+        "keyboard idle"
+      ],
+      "scores": {
+        "keyboard": 0.3,
+        "mouse": 0.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.252,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:57:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.755,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:58:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.473,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-24T23:59:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.462,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:00:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.39,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:01:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.211,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:02:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.407,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:03:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.756,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:04:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.24,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:05:04",
+      "state": "idle",
+      "confidence": 0.495,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.876,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:06:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.345,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:07:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.416,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:08:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.359,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:09:04",
+      "state": "present",
+      "confidence": 0.63,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.755,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:10:04",
+      "state": "present",
+      "confidence": 0.63,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active",
+        "RF motion (dummy)"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.65,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": true,
+        "signal_strength": 0.768,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:11:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.275,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:12:04",
+      "state": "idle",
+      "confidence": 0.519,
+      "present": true,
+      "evidence": [
+        "keyboard active",
+        "mouse active"
+      ],
+      "scores": {
+        "keyboard": 1.0,
+        "mouse": 1.0,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.413,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
+    },
+    {
+      "timestamp": "2026-06-25T00:13:04",
+      "state": "idle",
+      "confidence": 0.385,
+      "present": true,
+      "evidence": [
+        "keyboard recent",
+        "mouse recent"
+      ],
+      "scores": {
+        "keyboard": 0.75,
+        "mouse": 0.7,
+        "rf": 0.1,
+        "mic": 0.0,
+        "app": 0.0
+      },
+      "rf": {
+        "source": "dummy",
+        "movement_detected": false,
+        "signal_strength": 0.348,
+        "confidence": 0.65,
+        "zone": "desk"
+      }
     }
   ]
 }
