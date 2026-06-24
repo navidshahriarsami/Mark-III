@@ -467,7 +467,7 @@ class MeshManager:
 
                         # STT
                         text = transcribe(wav_bytes)
-                        log.info("  Device STT: %r", text[:80])
+                        log.info("  Device STT (%s): %r", device_id, text[:80])
 
                         if not text or validator.is_noise(text):
                             self._send(200, {"text": "", "utterance": text or ""})

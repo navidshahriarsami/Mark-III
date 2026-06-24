@@ -148,8 +148,8 @@ class _MicRelay:
 
     SR            = 16000
     CHUNK         = 480       # 30 ms at 16 kHz
-    SPEECH_DB     = -35.0     # energy onset threshold
-    ONSET_CHUNKS  = 5         # 5 × 30ms = 150ms sustained to confirm speech
+    SPEECH_DB     = -40.0     # energy onset threshold (lower = more sensitive for Mac mics)
+    ONSET_CHUNKS  = 3         # 3 × 30ms = 90ms to confirm speech (faster on Mac)
     SILENCE_S     = 2.0       # 2s silence → end of utterance
     MAX_S         = 20.0      # hard ceiling
 
@@ -239,9 +239,10 @@ class _MicRelay:
 
                 if not recording:
                     onset = (onset + 1) if loud else max(onset - 2, 0)
+                    log.debug("mic db=%.1f onset=%d loud=%s", db, onset, loud)
                     if onset >= self.ONSET_CHUNKS:
                         recording = True
-                        log.debug("Speech onset")
+                        log.info("Speech onset detected (db=%.1f)", db)
                 else:
                     chunks.append(pcm.tobytes())
                     total_samp += len(pcm)

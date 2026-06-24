@@ -964,6 +964,10 @@ class AlwaysListeningLoop:
         # ── 3. Control commands ────────────────────────────────────────────
         clean = text.strip().lower().rstrip(".!?,; ")
 
+        # Wake desktop if it was sleeping due to handoff
+        if self._state == ServiceState.SLEEPING and clean not in {"sleep", "pause", "stop", "quiet"}:
+            self._set_state(ServiceState.WAIT_FOR_SPEECH)
+
         # Pause / stop → sleep until user says "Mark"
         _PAUSE_WORDS = {
             "stop", "pause", "quiet", "silence", "sleep",
@@ -1066,14 +1070,14 @@ class AlwaysListeningLoop:
                     # Full handoff: transfer conversation history + speak on target
                     ok = mgr.handoff_conversation(target_dev.device_id, answer)
                     if not ok:
-                        # Fallback to simple push if conversation transfer fails
                         mgr.push_to_device(target_dev.device_id, answer)
-                    ack = f"Continuing on {target_dev.name}."
-                    log.info("Handoff → %s (history transferred: %s)", target_dev.name, ok)
+                    ack = f"Continuing on {target_dev.name}. Desktop going quiet."
+                    log.info("Handoff → %s — desktop entering sleep mode", target_dev.name)
                     if not self.is_muted():
                         _beep(660, 0.07)
                         self._tts.speak(ack, threading.Event())
-                    self._set_state(ServiceState.WAIT_FOR_SPEECH)
+                    # Desktop sleeps — Mac handles voice until user says "continue on desktop"
+                    self._set_state(ServiceState.SLEEPING)
                     return
                 else:
                     answer = f"No {target_kw} online in the mesh right now."
