@@ -441,6 +441,65 @@ class MeshManager:
                     self._send(404, {"error": "endpoint not found"})
 
             def do_POST(self):
+                # ── /mesh/voice — audio relay from device mic ──────────────
+                # Receives raw WAV bytes, runs full pipeline, returns text.
+                # ThreadingHTTPServer gives each request its own thread so
+                # blocking on Whisper + Council is safe here.
+                if self.path == "/mesh/voice":
+                    device_id = self.headers.get("X-Device-ID", "unknown")
+                    length    = int(self.headers.get("Content-Length", 0))
+                    if not length:
+                        self._send(400, {"error": "no audio data"})
+                        return
+
+                    wav_bytes = self.rfile.read(length)
+                    log.info("Voice relay from %s (%d bytes)", device_id, len(wav_bytes))
+
+                    try:
+                        from app.services.voice.always_listening_loop import (
+                            transcribe, query_council,
+                        )
+                        from app.services.voice.reflex_router import match as _social
+                        from app.services.reflex.reflex_router import route as _sys
+                        from app.services.voice.conversation_buffer import SentenceValidator
+
+                        validator = SentenceValidator()
+
+                        # STT
+                        text = transcribe(wav_bytes)
+                        log.info("  Device STT: %r", text[:80])
+
+                        if not text or validator.is_noise(text):
+                            self._send(200, {"text": "", "utterance": text or ""})
+                            return
+
+                        # Reflex → Qwen/Council
+                        answer = _social(text)
+                        if not answer:
+                            sys_r = _sys(text)
+                            answer = sys_r.text if sys_r.handled else None
+                        if not answer:
+                            answer = query_council(text)
+
+                        log.info("  Device answer: %r", answer[:80])
+                        self._send(200, {"text": answer, "utterance": text})
+
+                        # Also push to device listener so it speaks immediately
+                        # (in parallel — don't block the response)
+                        if answer and device_id != "unknown":
+                            threading.Thread(
+                                target=manager.push_to_device,
+                                args=(device_id, answer),
+                                kwargs={"speak": False},  # device already has the text
+                                daemon=True,
+                            ).start()
+
+                    except Exception as e:
+                        log.error("Voice relay processing error: %s", e)
+                        self._send(500, {"error": str(e), "utterance": ""})
+                    return
+
+                # ── JSON body endpoints ────────────────────────────────────
                 payload = self._body()
 
                 if self.path == "/mesh/register":

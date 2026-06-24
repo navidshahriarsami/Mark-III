@@ -133,6 +133,157 @@ def _deliver(text: str, source: str = "MARK", speak: bool = True) -> None:
         _speak(text)
 
 
+# ─── Mic Relay — VAD + audio sender ──────────────────────────────────────────
+
+class _MicRelay:
+    """
+    Phase 16D: Captures mic utterances on the device and sends them to the
+    MARK Core desktop for processing (Whisper → Reflex/Qwen → response).
+
+    Uses a lightweight energy-based VAD — no ML, no imports from brain-server.
+    A speaking lock prevents the mic from picking up MARK's own TTS output.
+
+    Requires: pip3 install sounddevice numpy
+    """
+
+    SR            = 16000
+    CHUNK         = 480       # 30 ms at 16 kHz
+    SPEECH_DB     = -35.0     # energy onset threshold
+    ONSET_CHUNKS  = 5         # 5 × 30ms = 150ms sustained to confirm speech
+    SILENCE_S     = 2.0       # 2s silence → end of utterance
+    MAX_S         = 20.0      # hard ceiling
+
+    def __init__(
+        self,
+        core_base:   str,
+        device_id:   str,
+        on_response: callable = None,
+        tts:         bool     = True,
+    ) -> None:
+        self._base       = core_base
+        self._id         = device_id
+        self._on_resp    = on_response or (lambda t: None)
+        self._tts        = tts
+        self._speaking   = threading.Event()   # set while device is speaking
+
+    def start(self) -> None:
+        threading.Thread(target=self._loop, daemon=True, name="mic-relay").start()
+        log.info("Mic relay active — listening for voice queries")
+
+    def set_speaking(self, speaking: bool) -> None:
+        """Call before and after TTS playback to block mic during speech."""
+        if speaking:
+            self._speaking.set()
+        else:
+            self._speaking.clear()
+
+    def _loop(self) -> None:
+        while True:
+            # Don't record while the device is speaking (avoids echo)
+            if self._speaking.is_set():
+                time.sleep(0.1)
+                continue
+
+            wav = self._record_utterance()
+            if not wav:
+                continue
+
+            response, utterance = self._send(wav)
+            if response:
+                log.info("  MARK : %s", response[:100])
+                self.set_speaking(True)
+                self._on_resp(response)
+                # Small gap so TTS finishes before mic re-arms
+                time.sleep(0.4)
+                self.set_speaking(False)
+
+    def _record_utterance(self) -> Optional[bytes]:
+        """
+        Block until a complete utterance is captured.
+        Returns WAV bytes, or None if stop signal received.
+        """
+        try:
+            import sounddevice as sd
+            import numpy as np
+            import io, wave
+        except ImportError:
+            log.error("sounddevice/numpy not installed. Run: pip3 install sounddevice numpy")
+            time.sleep(5)
+            return None
+
+        onset       = 0
+        recording   = False
+        chunks:     list[bytes] = []
+        sil_samp    = 0
+        total_samp  = 0
+        sil_limit   = int(self.SILENCE_S * self.SR)
+        max_samp    = int(self.MAX_S     * self.SR)
+
+        with sd.InputStream(
+            samplerate = self.SR,
+            channels   = 1,
+            dtype      = "float32",
+            blocksize  = self.CHUNK,
+        ) as stream:
+            log.debug("Listening…")
+            while True:
+                if self._speaking.is_set():
+                    return None   # interrupted — discard partial
+
+                raw, _ = stream.read(self.CHUNK)
+                pcm    = (raw[:, 0] * 32767).astype("int16")
+                import math
+                rms    = float((pcm.astype("float64") ** 2).mean() ** 0.5)
+                db     = 20.0 * math.log10(rms / 32768.0 + 1e-9)
+                loud   = db > self.SPEECH_DB
+
+                if not recording:
+                    onset = (onset + 1) if loud else max(onset - 2, 0)
+                    if onset >= self.ONSET_CHUNKS:
+                        recording = True
+                        log.debug("Speech onset")
+                else:
+                    chunks.append(pcm.tobytes())
+                    total_samp += len(pcm)
+                    sil_samp    = 0 if loud else sil_samp + len(pcm)
+                    if sil_samp >= sil_limit or total_samp >= max_samp:
+                        break
+
+        if not chunks:
+            return None
+
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(self.SR)
+            wf.writeframes(b"".join(chunks))
+        return buf.getvalue()
+
+    def _send(self, wav_bytes: bytes) -> tuple[str, str]:
+        """POST WAV to /mesh/voice, return (answer, utterance)."""
+        try:
+            import requests
+            r = requests.post(
+                f"{self._base}/mesh/voice",
+                data    = wav_bytes,
+                headers = {
+                    "Content-Type":   "audio/wav",
+                    "X-Device-ID":    self._id,
+                    "Content-Length": str(len(wav_bytes)),
+                },
+                timeout = 60,
+            )
+            if r.status_code == 200:
+                d = r.json()
+                utt  = d.get("utterance", "")
+                text = d.get("text", "")
+                if utt:
+                    log.info("  YOU  : %s", utt)
+                return text, utt
+        except Exception as e:
+            log.warning("Voice relay send failed: %s", e)
+        return "", ""
+
+
 # ─── MARKDeviceClient ─────────────────────────────────────────────────────────
 
 class MARKDeviceClient:
@@ -150,6 +301,7 @@ class MARKDeviceClient:
         device_type: str  = "unknown",
         listen_port: int  = LISTENER_PORT,
         tts:         bool = True,
+        mic:         bool = False,
     ) -> None:
         self._base        = f"http://{core_host}:{core_port}"
         self._id          = device_id or f"{device_type}-{platform.node().lower()[:12]}"
@@ -157,8 +309,10 @@ class MARKDeviceClient:
         self._type        = device_type
         self._listen_port = listen_port
         self._tts         = tts
+        self._mic         = mic
         self._running     = False
         self._hb_thread:  Optional[threading.Thread] = None
+        self._mic_relay:  Optional[_MicRelay] = None
         self._conversation_history: list = []
 
     # ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -170,7 +324,7 @@ class MARKDeviceClient:
 
         self._running = True
 
-        # Inbound listener
+        # Inbound listener (receives MARK's responses, speaks them)
         threading.Thread(
             target=self._run_listener, daemon=True, name="mesh-listener"
         ).start()
@@ -181,10 +335,25 @@ class MARKDeviceClient:
         )
         self._hb_thread.start()
 
-        log.info(
-            "MARK client running — listening on port %d  ·  heartbeat every %ds",
-            self._listen_port, HEARTBEAT_INTERVAL_S,
-        )
+        # Phase 16D: Mic relay (captures voice, sends to desktop brain)
+        if self._mic:
+            self._mic_relay = _MicRelay(
+                core_base   = self._base,
+                device_id   = self._id,
+                on_response = lambda text: _deliver(text, "MARK", self._tts),
+                tts         = self._tts,
+            )
+            self._mic_relay.start()
+            log.info(
+                "MARK client running — listener port %d  ·  mic ACTIVE  ·  heartbeat %ds",
+                self._listen_port, HEARTBEAT_INTERVAL_S,
+            )
+        else:
+            log.info(
+                "MARK client running — listener port %d  ·  heartbeat %ds  "
+                "(add --mic to enable voice queries from this device)",
+                self._listen_port, HEARTBEAT_INTERVAL_S,
+            )
 
     def stop(self) -> None:
         self._running = False
@@ -299,8 +468,14 @@ class MARKDeviceClient:
                     speak  = body.get("speak", True) and client._tts
                     self._json(200, {"status": "ok", "received": bool(text)})
                     if text:
+                        def _deliver_with_lock(t, s, sp):
+                            if client._mic_relay:
+                                client._mic_relay.set_speaking(True)
+                            _deliver(t, s, sp)
+                            if client._mic_relay:
+                                client._mic_relay.set_speaking(False)
                         threading.Thread(
-                            target=_deliver, args=(text, source, speak), daemon=True
+                            target=_deliver_with_lock, args=(text, source, speak), daemon=True
                         ).start()
 
                 # ── Conversation handoff from desktop ─────────────────────
@@ -349,6 +524,7 @@ Examples:
     parser.add_argument("--device-id", default="")
     parser.add_argument("--listen-port", type=int, default=LISTENER_PORT)
     parser.add_argument("--no-tts",    action="store_true", help="Disable TTS playback")
+    parser.add_argument("--mic",       action="store_true", help="Enable mic relay — send voice to desktop brain")
     parser.add_argument("--verbose",   action="store_true")
     args = parser.parse_args()
 
@@ -356,6 +532,14 @@ Examples:
         level   = logging.DEBUG if args.verbose else logging.INFO,
         format  = "%(asctime)s [%(name)s] %(message)s",
     )
+
+    if args.mic:
+        try:
+            import sounddevice, numpy  # noqa: F401
+        except ImportError:
+            print("ERROR: mic relay requires sounddevice + numpy. Run:")
+            print("  pip3 install sounddevice numpy")
+            sys.exit(1)
 
     client = MARKDeviceClient(
         core_host   = args.host,
@@ -365,6 +549,7 @@ Examples:
         device_type = args.type,
         listen_port = args.listen_port,
         tts         = not args.no_tts,
+        mic         = args.mic,
     )
 
     try:
