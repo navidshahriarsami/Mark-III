@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"C:\\\\Users\\\\Celluloid Solutions\\\\Downloads\\\\\" | grep -i migration)",
+      "Bash(ls -la ~/.ssh/ 2>&1)",
+      "Bash(unzip -l \"C:\\\\Users\\\\Celluloid Solutions\\\\Downloads\\\\idea72-main.zip\")",
+      "Bash(ls -la '/c/Users/Celluloid Solutions/.claude/projects/C--Users-Celluloid-Solutions-Desktop-idea72/memory/' 2>&1)",
+      "Bash(pip --version)",
+      "Bash(python -m venv .venv)",
+      "Bash(.venv\\\\Scripts\\\\pip.exe install *)",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "Bash(del \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\desktop-daemon\\\\test_detector.py\")",
+      "PowerShell(cd \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\desktop-daemon\"; $proc = Start-Process -FilePath \".\\\\.venv\\\\Scripts\\\\python.exe\" -ArgumentList \"daemon\\\\main.py\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\markiii_out.txt\" -RedirectStandardError \"$env:TEMP\\\\markiii_err.txt\"; Start-Sleep -Seconds 4; Get-Content \"$env:TEMP\\\\markiii_out.txt\"; Get-Content \"$env:TEMP\\\\markiii_err.txt\"; Write-Host \"--- Process still running: $\\(-not $proc.HasExited\\) \\(PID $\\($proc.Id\\)\\) ---\")",
+      "PowerShell(Get-Content \"$env:TEMP\\\\brain_out.txt\" | Select-Object -Last 20)",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\brain-server\\\\app\\\\services\")",
+      "PowerShell(New-Item -ItemType File -Force \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\brain-server\\\\app\\\\services\\\\__init__.py\")",
+      "Bash(curl -s http://localhost:8000/status)",
+      "Bash(python3 -m json.tool)",
+      "Bash(Get-Process -Name uvicorn -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force)",
+      "Bash(Write-Host \"stopped\")",
+      "Bash(python -c ' *)",
+      "Bash(.venvScriptspython.exe -c ' *)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://127.0.0.1:8001/status\" | Select-Object status, @{N='version';E={$_.PSObject.Properties['version'].Value}} 2>&1)",
+      "Bash(.venvScriptspython -c ' *)",
+      "PowerShell(cd \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\brain-server\"; [System.Environment]::GetEnvironmentVariable\\(\"ANTHROPIC_API_KEY\", \"User\"\\))",
+      "WebFetch(domain:openrouter.ai)",
+      "PowerShell(cd \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\brain-server\"; $env:OPENROUTER_API_KEY=\"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\"; .\\\\.venv\\\\Scripts\\\\python.exe verify_council.py 2>&1)",
+      "Bash(python mark_service.py --console)",
+      "Bash(Start-Sleep -Seconds 12)",
+      "Bash(Get-Content \"C:\\\\Users\\\\CELLUL~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Celluloid-Solutions-Desktop-idea72\\\\d054bb92-0aba-41d3-98ef-4776f3584e8e\\\\tasks\\\\btgj493uk.output\")",
+      "Bash(pip install *)",
+      "Bash(python -m pip install numpy sounddevice faster-whisper piper-tts pywin32)",
+      "Bash(\"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m pip install numpy sounddevice faster-whisper piper-tts pywin32)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git rm *)"
+    ]
+  }
+}

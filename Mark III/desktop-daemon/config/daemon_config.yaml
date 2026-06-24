@@ -1,0 +1,24 @@
+# MARK III — Daemon Configuration
+
+# How often (seconds) the screen monitor polls the foreground window
+poll_seconds: 10
+
+# How many continuous minutes on a blocked site/app before a reprimand fires
+trigger_minutes: 15
+
+# Work blocks in 24h local time. Rabbit-hole detection is ONLY active during these.
+# Format: start (inclusive) → end (exclusive), hour values 0–23
+work_blocks:
+  - start: 9
+    end: 12
+  - start: 13
+    end: 17
+
+# Brain server connection
+brain_server:
+  base_url: "http://localhost:8000"
+  timeout_seconds: 10
+  heartbeat_interval_seconds: 30
+
+# Mobile approval timeout — seconds to wait for phone approval of a sudo command
+mobile_approval_timeout_seconds: 120

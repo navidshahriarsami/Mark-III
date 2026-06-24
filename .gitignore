@@ -1,0 +1,56 @@
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment & secrets
+.env
+*.env.local
+.env.*
+
+# Logs
+markiii_service.log
+*.log
+
+# Runtime data (regenerated automatically)
+mesh_devices.json
+mesh_diagnostics.json
+voice_diagnostics.json
+
+# Large model files (auto-downloaded on first run)
+Mark III/brain-server/app/services/voice/models/*.onnx
+Mark III/brain-server/app/services/voice/models/*.json
+
+# Whisper / HuggingFace cache
+.cache/
+huggingface/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Temporary
+*.tmp
+*.temp

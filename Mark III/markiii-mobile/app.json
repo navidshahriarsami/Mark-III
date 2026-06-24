@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "MARK III",
+    "slug": "markiii-mobile",
+    "version": "0.7.0",
+    "orientation": "portrait",
+    "scheme": "markiii",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0D0D0D"
+      },
+      "package": "com.markiii.mobile",
+      "googleServicesFile": "./google-services.json"
+    },
+    "ios": {
+      "bundleIdentifier": "com.markiii.mobile",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#00C896",
+          "sounds": []
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

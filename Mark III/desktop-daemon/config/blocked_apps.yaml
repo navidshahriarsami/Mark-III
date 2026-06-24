@@ -1,0 +1,35 @@
+# MARK III — Blocked Keywords Configuration
+# Matched case-insensitively against: window title + OCR address bar text
+# Add or remove keywords freely; the daemon reloads this file every ~5 minutes.
+
+keywords:
+  # Social & video
+  - youtube.com
+  - reddit
+  - twitter.com
+  - x.com
+  - facebook.com
+  - instagram.com
+  - tiktok.com
+  - twitch.tv
+  - 9gag.com
+  - linkedin.com      # networking is fine; doomscrolling is not
+
+  # Gaming & entertainment
+  - gaming
+  - steam
+  - epic games
+  - twitch
+  - netflix.com
+  - disneyplus.com
+  - primevideo.com
+
+  # Chat (during work blocks only)
+  - discord
+  - whatsapp
+
+  # Classic time-sinks
+  - buzzfeed
+  - dailymail
+  - news.com.au       # unless it's the Morning Briefing, in which case — fair enough
+  - mechanical keyboard   # you know why this is here
