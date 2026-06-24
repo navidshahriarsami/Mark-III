@@ -264,11 +264,11 @@ class MeshManager:
         except Exception:
             return None
 
-    def push_to_device(self, device_id: str, text: str) -> bool:
+    def push_to_device(self, device_id: str, text: str, speak: bool = True) -> bool:
         """
         Send a text response to a specific device.
-        Phase 16: simple HTTP POST to the device's /mark/response endpoint.
-        Returns True if delivered, False if device offline or unreachable.
+        The device speaks it via native TTS and shows a notification.
+        Returns True if delivered.
         """
         device = self._registry.get(device_id)
         if not device or device.state == DeviceState.OFFLINE.value:
@@ -278,14 +278,57 @@ class MeshManager:
             import requests
             r = requests.post(
                 f"http://{device.ip}:8766/mark/response",
-                json={"text": text, "source": DESKTOP_DEVICE_ID},
-                timeout=3,
+                json={"text": text, "source": DESKTOP_DEVICE_ID, "speak": speak},
+                timeout=4,
             )
             ok = r.status_code == 200
-            log.info("Pushed to %s: %s (HTTP %d)", device.name, ok, r.status_code)
+            log.info("→ %s: %s (HTTP %d)", device.name, text[:60], r.status_code)
             return ok
         except Exception as e:
             log.warning("push_to_device %s failed: %s", device.name, e)
+            return False
+
+    def handoff_conversation(self, device_id: str, last_text: str = "") -> bool:
+        """
+        Phase 16B: transfer conversation history to another device.
+        The receiving device speaks the confirmation and loads the history
+        so the next voice query continues the same context.
+        """
+        device = self._registry.get(device_id)
+        if not device or device.state == DeviceState.OFFLINE.value:
+            log.warning("handoff: %s is offline", device_id)
+            return False
+        try:
+            import requests
+            from app.services.ai.local_qwen_provider import _history
+            payload = {
+                "text":          f"Continuing from desktop. {last_text}".strip(),
+                "history":       list(_history),
+                "source_device": "Desktop",
+                "source":        DESKTOP_DEVICE_ID,
+            }
+            r = requests.post(
+                f"http://{device.ip}:8766/mark/conversation",
+                json=payload,
+                timeout=4,
+            )
+            ok = r.status_code == 200
+            log.info("Handoff → %s: %d messages transferred (HTTP %d)", device.name, len(list(_history)), r.status_code)
+            return ok
+        except Exception as e:
+            log.warning("handoff %s failed: %s", device_id, e)
+            return False
+
+    def ping_device(self, device_id: str) -> bool:
+        """Check if a device's listener is reachable."""
+        device = self._registry.get(device_id)
+        if not device:
+            return False
+        try:
+            import requests
+            r = requests.get(f"http://{device.ip}:8766/mark/ping", timeout=2)
+            return r.status_code == 200
+        except Exception:
             return False
 
     def status(self) -> MeshStatus:

@@ -13,6 +13,27 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+# ── Phase 16C: Presence layer patterns ────────────────────────────────────────
+_PRESENCE_PATTERNS: list[tuple[re.Pattern, str]] = [
+    (re.compile(
+        r"\bwhere am i\b|\bwhich device (am i|is active)\b"
+        r"|\bwhat (device|screen) am i (on|using)\b"
+        r"|\bactive device\b|\bpresence status\b",
+        re.I,
+    ), "active_presence"),
+    (re.compile(
+        r"\b(all |nearby )?(devices?|screens?) (online|nearby|connected|available)\b"
+        r"|\bwhat('?s| is) (online|connected|in the mesh)\b"
+        r"|\bshow (all )?devices?\b|\bdevice status\b",
+        re.I,
+    ), "all_presence"),
+    (re.compile(
+        r"\b(battery|charge|power) (on|of|for) (all |every )?(devices?|everything)\b"
+        r"|\ball (device )?batter(y|ies)\b",
+        re.I,
+    ), "battery_status"),
+]
+
 # ── Device mesh patterns ──────────────────────────────────────────────────────
 _MESH_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(
@@ -48,12 +69,18 @@ _IDLE_PATTERNS: list[tuple[re.Pattern, str]] = [
 
 def can_handle(text: str) -> bool:
     return (
+        any(p.search(text) for p, _ in _PRESENCE_PATTERNS) or
         any(p.search(text) for p, _ in _MESH_PATTERNS) or
         any(p.search(text) for p, _ in _IDLE_PATTERNS)
     )
 
 
 def handle(text: str) -> Optional[str]:
+    for pattern, action in _PRESENCE_PATTERNS:
+        if pattern.search(text):
+            fn = globals().get(f"_get_{action}")
+            if fn:
+                return fn()
     for pattern, action in _MESH_PATTERNS:
         if pattern.search(text):
             fn = globals().get(f"_get_{action}")
@@ -165,3 +192,64 @@ def _get_mesh_status(text: str = "") -> str:
         )
     except Exception:
         return "Device mesh not running."
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 16C — Presence layer handlers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _get_active_presence() -> str:
+    """Which device is the user on right now, with confidence."""
+    try:
+        from app.services.mesh.mesh_manager import get_mesh_manager
+        from app.services.mesh.presence_fusion import fuse
+        mgr     = get_mesh_manager()
+        result  = fuse(mgr.get_all_devices())
+        if not result:
+            return "Only the desktop is running."
+        conf    = int(result.confidence * 100)
+        battery = ""
+        dev     = mgr.get_device(result.device_id)
+        if dev and dev.battery is not None:
+            battery = f", battery {dev.battery:.0f}%"
+        ev = result.evidence[0] if result.evidence else ""
+        return (
+            f"You appear to be on {result.device_name}{battery}. "
+            f"Confidence {conf}%.{(' ' + ev.capitalize() + '.') if ev else ''}"
+        )
+    except Exception:
+        return "Presence data unavailable."
+
+
+def _get_all_presence() -> str:
+    """All devices with state and battery."""
+    try:
+        from app.services.mesh.mesh_manager import get_mesh_manager
+        mgr     = get_mesh_manager()
+        devices = mgr.get_all_devices()
+        if not devices:
+            return "No devices registered in the mesh."
+        parts = []
+        for d in devices:
+            state   = d.state.upper()
+            battery = f" {d.battery:.0f}%" if d.battery is not None else ""
+            parts.append(f"{d.name} — {state}{battery}")
+        return "Devices: " + ", ".join(parts) + "."
+    except Exception:
+        return "Mesh not running."
+
+
+def _get_battery_status() -> str:
+    """Battery levels across all mesh devices."""
+    try:
+        from app.services.mesh.mesh_manager import get_mesh_manager
+        devices = get_mesh_manager().get_online_devices()
+        readings = [
+            f"{d.name} {d.battery:.0f}%"
+            for d in devices if d.battery is not None
+        ]
+        if not readings:
+            return "No battery data available from connected devices."
+        return "Batteries: " + ", ".join(readings) + "."
+    except Exception:
+        return "Battery data unavailable."

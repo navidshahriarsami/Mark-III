@@ -1063,9 +1063,13 @@ class AlwaysListeningLoop:
                     None,
                 )
                 if target_dev and target_dev.state != "offline":
-                    mgr.push_to_device(target_dev.device_id, answer)
-                    ack = f"Sent to {target_dev.name}."
-                    log.info("Handoff: %r → %s", answer[:60], target_dev.name)
+                    # Full handoff: transfer conversation history + speak on target
+                    ok = mgr.handoff_conversation(target_dev.device_id, answer)
+                    if not ok:
+                        # Fallback to simple push if conversation transfer fails
+                        mgr.push_to_device(target_dev.device_id, answer)
+                    ack = f"Continuing on {target_dev.name}."
+                    log.info("Handoff → %s (history transferred: %s)", target_dev.name, ok)
                     if not self.is_muted():
                         _beep(660, 0.07)
                         self._tts.speak(ack, threading.Event())
