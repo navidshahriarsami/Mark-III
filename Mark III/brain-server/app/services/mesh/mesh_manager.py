@@ -500,16 +500,8 @@ class MeshManager:
                         log.info("  Device answer: %r", answer[:80])
                         self._send(200, {"text": answer, "utterance": text})
                         set_mesh_relay_active(False)
-
-                        # Also push to device listener so it speaks immediately
-                        # (in parallel — don't block the response)
-                        if answer and device_id != "unknown":
-                            threading.Thread(
-                                target=manager.push_to_device,
-                                args=(device_id, answer),
-                                kwargs={"speak": False},  # device already has the text
-                                daemon=True,
-                            ).start()
+                        # Note: device_client._MicRelay handles TTS via the HTTP response
+                        # Do NOT push again — that causes double Samantha response
 
                     except Exception as e:
                         log.error("Voice relay processing error: %s", e)
