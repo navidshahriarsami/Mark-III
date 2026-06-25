@@ -38,7 +38,7 @@ _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 log = logging.getLogger("markiii.ai.qwen_local")
 
 _OLLAMA_BASE        = "http://localhost:11434"
-_MODEL              = "qwen2.5:3b"
+_MODEL              = "qwen2.5:7b"
 _HEALTH_TIMEOUT_S   = 2.0    # fast ping — fail quickly if Ollama is not running
 _GENERATE_TIMEOUT_S = 12.0   # generous for first cold inference after idle
 
