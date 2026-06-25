@@ -400,7 +400,10 @@ class MARKDeviceClient:
     # ── Heartbeat loop ─────────────────────────────────────────────────────────
 
     def _heartbeat_loop(self) -> None:
-        registered = False   # start unregistered — register on first 404 or success
+        registered  = False
+        fail_count  = 0
+        MAX_WAIT_S  = 120   # cap backoff at 2 minutes
+
         while self._running:
             try:
                 import requests
@@ -410,22 +413,35 @@ class MARKDeviceClient:
                     "active":    _is_active(),
                 }
                 r = requests.post(
-                    f"{self._base}/mesh/heartbeat", json=payload, timeout=5
+                    f"{self._base}/mesh/heartbeat", json=payload, timeout=8
                 )
+
                 if r.status_code == 404:
-                    # Not registered — try to register regardless of flag
                     log.info("Heartbeat 404 — re-registering with MARK Core ...")
                     registered = self._register()
+                    fail_count = 0
+
                 elif r.status_code == 200:
-                    if not registered:
-                        log.info("Heartbeat OK — device is registered")
+                    if fail_count > 0:
+                        log.info("Reconnected to MARK Core after %d failed attempt(s)", fail_count)
+                    fail_count = 0
                     registered = True
                     log.debug("♥ battery=%s  active=%s", payload["battery"], payload["active"])
+
                 else:
                     log.warning("Heartbeat HTTP %d", r.status_code)
+
+                time.sleep(HEARTBEAT_INTERVAL_S)
+
             except Exception as e:
-                log.debug("Heartbeat error: %s", e)
-            time.sleep(HEARTBEAT_INTERVAL_S)
+                fail_count += 1
+                # Exponential backoff: 15s, 30s, 60s, 120s (capped)
+                wait = min(HEARTBEAT_INTERVAL_S * (2 ** min(fail_count - 1, 3)), MAX_WAIT_S)
+                log.info(
+                    "Connection lost (attempt %d) — retrying in %ds [%s]",
+                    fail_count, wait, type(e).__name__,
+                )
+                time.sleep(wait)
 
     # ── Inbound HTTP listener ──────────────────────────────────────────────────
 
