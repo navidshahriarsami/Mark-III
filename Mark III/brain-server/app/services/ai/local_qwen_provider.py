@@ -171,11 +171,21 @@ async def generate(
 
     user_msg = f"CONTEXT: {context_hint}\n\nUSER: {user_prompt}" if context_hint else f"USER: {user_prompt}"
 
+    # Phase 18: inject language instruction if non-English detected
+    effective_system = system
+    try:
+        from app.services.integrations.language_service import get_current, build_language_instruction
+        lang_instr = build_language_instruction(get_current())
+        if lang_instr:
+            effective_system = system + "\n\n" + lang_instr
+    except Exception:
+        pass
+
     # Build message list: system + conversation history + current turn
     with _history_lock:
         history_snapshot = list(_history)
 
-    messages = [{"role": "system", "content": system}]
+    messages = [{"role": "system", "content": effective_system}]
     messages.extend(history_snapshot)
     messages.append({"role": "user", "content": user_msg})
 

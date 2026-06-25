@@ -266,26 +266,31 @@ def transcribe(wav_bytes: bytes) -> str:
         tmp = f.name
     try:
         with _stt_lock:
-            segments, _ = _stt_model.transcribe(
-                tmp, language="en", vad_filter=True, beam_size=3,
+            # Phase 18: detect language automatically (no language="en" lock)
+            segments, info = _stt_model.transcribe(
+                tmp, vad_filter=True, beam_size=3,
             )
             parts = []
             for s in segments:
-                # Reject low-confidence segments (hallucinations on silence)
                 if s.no_speech_prob > _STT_MAX_NO_SPEECH:
-                    log.debug(
-                        "STT: reject no_speech=%.2f %r",
-                        s.no_speech_prob, s.text[:40],
-                    )
+                    log.debug("STT: reject no_speech=%.2f %r", s.no_speech_prob, s.text[:40])
                     continue
                 if s.avg_logprob < _STT_MIN_LOGPROB:
-                    log.debug(
-                        "STT: reject logprob=%.2f %r",
-                        s.avg_logprob, s.text[:40],
-                    )
+                    log.debug("STT: reject logprob=%.2f %r", s.avg_logprob, s.text[:40])
                     continue
                 parts.append(s.text.strip())
-            return " ".join(parts).strip()
+            text = " ".join(parts).strip()
+
+            # Update language service with detected language
+            try:
+                from app.services.integrations.language_service import from_whisper
+                lang = from_whisper(info.language, getattr(info, "language_probability", 1.0))
+                if lang.code != "en":
+                    log.info("STT: detected language=%s (%.0f%%)", lang.name, lang.confidence * 100)
+            except Exception:
+                pass
+
+            return text
     except Exception as e:
         log.error("STT: %s", e)
         return ""
@@ -414,7 +419,23 @@ def _start_council_loop() -> None:
 
 
 def query_council(text: str) -> str:
-    """Query Cognitive Council. Blocks. Returns answer string."""
+    """
+    Phase 18: Integration Manager → Council pipeline.
+    Factual queries are answered by services before reaching the LLM.
+    The LLM only handles conversation, reasoning, and personality.
+    """
+    # Phase 18: check integration manager first (time, system, weather, etc.)
+    try:
+        from app.services.integrations.integration_manager import route as _integ_route
+        from app.services.integrations.language_service    import get_current as _get_lang
+        lang    = _get_lang()
+        result  = _integ_route(text, lang.code)
+        if result.handled:
+            log.info("Integration(%s) %.0fms — bypassing LLM", result.source, result.latency_ms)
+            return result.text
+    except Exception as e:
+        log.debug("Integration manager error: %s", e)
+
     if not _council_loop:
         return "Council offline."
     try:
