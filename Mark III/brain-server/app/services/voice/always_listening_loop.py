@@ -764,7 +764,15 @@ class AlwaysListeningLoop:
 
         set_active_voice_device(target_dev.device_id)
 
-        ack = f"Switching to {target_dev.name}. Desktop going quiet — I'll process everything from there."
+        # Signal the target device to resume its mic relay
+        try:
+            import requests as _req
+            _req.post(f"http://{target_dev.ip}:8766/mark/relay",
+                      json={"action": "start"}, timeout=3)
+        except Exception:
+            pass
+
+        ack = f"Switching to {target_dev.name}. Desktop going quiet."
         log.info("Voice mode shift → %s (id=%s)", target_dev.name, target_dev.device_id)
 
         if not self.is_muted():

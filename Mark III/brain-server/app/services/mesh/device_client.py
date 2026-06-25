@@ -153,8 +153,6 @@ class _MicRelay:
     SILENCE_S     = 2.0       # 2s silence → end of utterance
     MAX_S         = 20.0      # hard ceiling
 
-    WAKE_WORD = "samantha"   # say this to wake Mac when it's idle
-
     def __init__(
         self,
         core_base:   str,
@@ -162,20 +160,20 @@ class _MicRelay:
         on_response: callable = None,
         tts:         bool     = True,
     ) -> None:
-        self._base       = core_base
-        self._id         = device_id
-        self._on_resp    = on_response or (lambda t: None)
-        self._tts        = tts
-        self._speaking   = threading.Event()   # set while device is speaking
-        self._wake_mode  = False               # True = idle, only "Samantha" wakes it
+        self._base        = core_base
+        self._id          = device_id
+        self._on_resp     = on_response or (lambda t: None)
+        self._tts         = tts
+        self._speaking    = threading.Event()   # set while device is speaking
+        self._relay_paused = threading.Event()  # set = mic paused (desktop is active device)
 
-    def enter_wake_mode(self) -> None:
-        self._wake_mode = True
-        log.info("Mac idle — say '%s' to wake", self.WAKE_WORD)
+    def pause_relay(self) -> None:
+        self._relay_paused.set()
+        log.info("Mic relay paused — desktop is active voice device")
 
-    def exit_wake_mode(self) -> None:
-        self._wake_mode = False
-        log.info("Mac active — listening normally")
+    def resume_relay(self) -> None:
+        self._relay_paused.clear()
+        log.info("Mic relay resumed — this device is active")
 
     def start(self) -> None:
         threading.Thread(target=self._loop, daemon=True, name="mic-relay").start()
@@ -190,6 +188,11 @@ class _MicRelay:
 
     def _loop(self) -> None:
         while True:
+            # Paused — desktop is the active voice device, Mac is quiet
+            if self._relay_paused.is_set():
+                time.sleep(0.5)
+                continue
+
             if self._speaking.is_set():
                 time.sleep(0.1)
                 continue
@@ -200,28 +203,10 @@ class _MicRelay:
 
             response, utterance, extras = self._send(wav)
 
-            # Desktop sent sleep signal ("shift to desktop" was said)
-            if extras.get("mac_sleep"):
-                self.enter_wake_mode()
+            # Desktop signalled: "shift to desktop" was detected — pause mic
+            if extras.get("stop_relay"):
+                self.pause_relay()
 
-            # Desktop confirmed wake word ("Samantha" detected)
-            if extras.get("mac_wake"):
-                self.exit_wake_mode()
-
-            # In wake mode: only process if wake word was in the utterance
-            if self._wake_mode:
-                if self.WAKE_WORD in utterance.lower():
-                    self.exit_wake_mode()
-                    # Speak the response (e.g. "Yes?") then stay active for next query
-                    if response:
-                        self.set_speaking(True)
-                        self._on_resp(response)
-                        time.sleep(0.4)
-                        self.set_speaking(False)
-                # else: no wake word, discard silently
-                continue
-
-            # Normal active mode
             if response:
                 log.info("  MARK : %s", response[:100])
                 self.set_speaking(True)
@@ -532,6 +517,18 @@ class MARKDeviceClient:
                         threading.Thread(
                             target=_deliver_with_lock, args=(text, source, speak), daemon=True
                         ).start()
+
+                # ── Relay control — start/stop mic from desktop ────────────
+                elif self.path == "/mark/relay":
+                    action = body.get("action", "")
+                    if action == "start" and client._mic_relay:
+                        client._mic_relay.resume_relay()
+                        self._json(200, {"status": "relay_started"})
+                    elif action == "stop" and client._mic_relay:
+                        client._mic_relay.pause_relay()
+                        self._json(200, {"status": "relay_stopped"})
+                    else:
+                        self._json(200, {"status": "ok"})
 
                 # ── Conversation handoff from desktop ─────────────────────
                 elif self.path == "/mark/conversation":

@@ -484,22 +484,10 @@ class MeshManager:
                         shift = parse_shift_target(text)
                         if shift == "desktop":
                             set_active_voice_device("desktop")
-                            ack = "Switching back to desktop. Say Samantha to wake me on your Mac."
-                            self._send(200, {"text": ack, "utterance": text, "mac_sleep": True})
+                            ack = "Switching to desktop. Desktop is now listening."
+                            self._send(200, {"text": ack, "utterance": text, "stop_relay": True})
                             set_mesh_relay_active(False)
                             return
-
-                        # Strip device wake word "Samantha" from Mac queries
-                        import re as _re
-                        _wake_m = _re.match(r'^samantha[\s,!.]*(.*)$', text.strip(), _re.I)
-                        if _wake_m:
-                            query_after = _wake_m.group(1).strip()
-                            if not query_after:
-                                # Just the wake word — acknowledge
-                                self._send(200, {"text": "Yes?", "utterance": text, "mac_wake": True})
-                                set_mesh_relay_active(False)
-                                return
-                            text = query_after   # process the rest
 
                         # Reflex → Qwen/Council
                         answer = _social(text)
