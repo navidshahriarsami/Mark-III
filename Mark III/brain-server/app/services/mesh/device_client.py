@@ -519,12 +519,21 @@ class MARKDeviceClient:
                 else:
                     self._json(404, {"error": "not found"})
 
-        try:
-            server = HTTPServer(("0.0.0.0", self._listen_port), _Handler)
-            log.info("MARK listener ready on 0.0.0.0:%d", self._listen_port)
-            server.serve_forever()
-        except OSError as e:
-            log.error("Listener failed (port %d): %s", self._listen_port, e)
+        # Retry binding — clears stale port from a previous run
+        import socket as _socket
+        for attempt in range(3):
+            try:
+                server = HTTPServer(("0.0.0.0", self._listen_port), _Handler)
+                server.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+                log.info("MARK listener ready on 0.0.0.0:%d", self._listen_port)
+                server.serve_forever()
+                return
+            except OSError as e:
+                if attempt < 2:
+                    log.warning("Listener port %d in use — retrying in 3s ...", self._listen_port)
+                    time.sleep(3)
+                else:
+                    log.error("Listener failed after 3 attempts (port %d): %s", self._listen_port, e)
 
 
 # ─── CLI ───────────────────────────────────────────────────────────────────────
