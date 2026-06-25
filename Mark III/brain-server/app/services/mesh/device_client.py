@@ -153,6 +153,8 @@ class _MicRelay:
     SILENCE_S     = 2.0       # 2s silence → end of utterance
     MAX_S         = 20.0      # hard ceiling
 
+    HOTKEY = "<cmd>+<alt>+m"   # physical trigger — always wakes Mac voice
+
     def __init__(
         self,
         core_base:   str,
@@ -160,37 +162,74 @@ class _MicRelay:
         on_response: callable = None,
         tts:         bool     = True,
     ) -> None:
-        self._base        = core_base
-        self._id          = device_id
-        self._on_resp     = on_response or (lambda t: None)
-        self._tts         = tts
-        self._speaking    = threading.Event()   # set while device is speaking
-        self._relay_paused = threading.Event()  # set = mic paused (desktop is active device)
+        self._base     = core_base
+        self._id       = device_id
+        self._on_resp  = on_response or (lambda t: None)
+        self._tts      = tts
+        self._speaking = threading.Event()
+        self._standby  = threading.Event()  # set = standby (desktop active, but Mac listening for hotkey)
 
-    def pause_relay(self) -> None:
-        self._relay_paused.set()
-        log.info("Mic relay paused — desktop is active voice device")
+    # ── State control ──────────────────────────────────────────────────────
+
+    def enter_standby(self) -> None:
+        """Desktop became active. Mac listens minimally — hotkey or remote signal resumes."""
+        self._standby.set()
+        log.info("Mac standby — press %s to reactivate", self.HOTKEY)
 
     def resume_relay(self) -> None:
-        self._relay_paused.clear()
-        log.info("Mic relay resumed — this device is active")
+        """Mac becomes active voice device."""
+        self._standby.clear()
+        log.info("Mac active — listening")
+
+    def set_speaking(self, speaking: bool) -> None:
+        if speaking: self._speaking.set()
+        else:        self._speaking.clear()
 
     def start(self) -> None:
         threading.Thread(target=self._loop, daemon=True, name="mic-relay").start()
-        log.info("Mic relay active — listening for voice queries")
+        self._setup_hotkey()
+        log.info("Mic relay active — listening  |  hotkey: %s", self.HOTKEY)
 
-    def set_speaking(self, speaking: bool) -> None:
-        """Call before and after TTS playback to block mic during speech."""
-        if speaking:
-            self._speaking.set()
-        else:
-            self._speaking.clear()
+    # ── Physical keyboard shortcut ─────────────────────────────────────────
+
+    def _setup_hotkey(self) -> None:
+        """Register a global hotkey that always re-activates Mac voice."""
+        try:
+            from pynput import keyboard
+
+            def _on_hotkey():
+                if self._standby.is_set():
+                    log.info("Physical trigger (%s) — resuming Mac voice", self.HOTKEY)
+                    self.resume_relay()
+                    # Notify desktop that Mac is taking over
+                    try:
+                        import requests
+                        requests.post(
+                            f"{self._base.replace('8765', '').rstrip('/')}",
+                            timeout=1,
+                        )
+                    except Exception:
+                        pass
+                    if self._tts:
+                        threading.Thread(
+                            target=_speak, args=("Mac active.",), daemon=True
+                        ).start()
+
+            listener = keyboard.GlobalHotKeys({self.HOTKEY: _on_hotkey})
+            listener.start()
+            log.info("Hotkey registered: %s → reactivate Mac voice", self.HOTKEY)
+        except ImportError:
+            log.info("pynput not installed — hotkey unavailable (pip3 install pynput)")
+        except Exception as e:
+            log.debug("Hotkey setup failed: %s", e)
+
+    # ── Main capture loop ──────────────────────────────────────────────────
 
     def _loop(self) -> None:
         while True:
-            # Paused — desktop is the active voice device, Mac is quiet
-            if self._relay_paused.is_set():
-                time.sleep(0.5)
+            # Standby — desktop is active, Mac waiting for hotkey or remote signal
+            if self._standby.is_set():
+                time.sleep(0.3)
                 continue
 
             if self._speaking.is_set():
@@ -203,9 +242,9 @@ class _MicRelay:
 
             response, utterance, extras = self._send(wav)
 
-            # Desktop signalled: "shift to desktop" was detected — pause mic
-            if extras.get("stop_relay"):
-                self.pause_relay()
+            # Desktop signals Mac to enter standby ("shift to desktop" detected)
+            if extras.get("enter_standby"):
+                self.enter_standby()
 
             if response:
                 log.info("  MARK : %s", response[:100])
@@ -518,15 +557,15 @@ class MARKDeviceClient:
                             target=_deliver_with_lock, args=(text, source, speak), daemon=True
                         ).start()
 
-                # ── Relay control — start/stop mic from desktop ────────────
+                # ── Relay control — start/standby from desktop ─────────────
                 elif self.path == "/mark/relay":
                     action = body.get("action", "")
                     if action == "start" and client._mic_relay:
                         client._mic_relay.resume_relay()
                         self._json(200, {"status": "relay_started"})
-                    elif action == "stop" and client._mic_relay:
-                        client._mic_relay.pause_relay()
-                        self._json(200, {"status": "relay_stopped"})
+                    elif action == "standby" and client._mic_relay:
+                        client._mic_relay.enter_standby()
+                        self._json(200, {"status": "standby"})
                     else:
                         self._json(200, {"status": "ok"})
 

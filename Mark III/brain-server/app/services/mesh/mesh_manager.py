@@ -481,12 +481,32 @@ class MeshManager:
                         from app.services.voice.always_listening_loop import (
                             parse_shift_target, set_active_voice_device, is_desktop_active,
                         )
+                        # Remote device command: "on the desktop, [command]"
+                        import re as _re2
+                        _remote_m = _re2.match(
+                            r'\bon\s+(?:the\s+)?desktop\s*[,:]?\s*(?P<cmd>.+)',
+                            text.strip(), _re2.I
+                        )
+                        if _remote_m:
+                            # Execute on desktop, Mac stays active voice interface
+                            text = _remote_m.group("cmd").strip()
+                            log.info("Remote desktop command from device: %r", text[:60])
+                            # Continue processing — voice interface stays on Mac
+
                         shift = parse_shift_target(text)
                         if shift == "desktop":
                             set_active_voice_device("desktop")
-                            ack = "Switching to desktop. Desktop is now listening."
-                            self._send(200, {"text": ack, "utterance": text, "stop_relay": True})
+                            ack = "Switching to desktop. Press Command Option M on your Mac to switch back."
+                            self._send(200, {"text": ack, "utterance": text, "enter_standby": True})
                             set_mesh_relay_active(False)
+                            # Tell Mac listener to enter standby
+                            threading.Thread(
+                                target=lambda: __import__("requests").post(
+                                    f"http://{self.client_address[0]}:8766/mark/relay",
+                                    json={"action": "standby"}, timeout=2
+                                ),
+                                daemon=True,
+                            ).start()
                             return
 
                         # Reflex → Qwen/Council
