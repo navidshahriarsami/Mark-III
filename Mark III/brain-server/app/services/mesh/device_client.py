@@ -153,6 +153,8 @@ class _MicRelay:
     SILENCE_S     = 2.0       # 2s silence → end of utterance
     MAX_S         = 20.0      # hard ceiling
 
+    WAKE_WORD = "samantha"   # say this to wake Mac when it's idle
+
     def __init__(
         self,
         core_base:   str,
@@ -165,6 +167,15 @@ class _MicRelay:
         self._on_resp    = on_response or (lambda t: None)
         self._tts        = tts
         self._speaking   = threading.Event()   # set while device is speaking
+        self._wake_mode  = False               # True = idle, only "Samantha" wakes it
+
+    def enter_wake_mode(self) -> None:
+        self._wake_mode = True
+        log.info("Mac idle — say '%s' to wake", self.WAKE_WORD)
+
+    def exit_wake_mode(self) -> None:
+        self._wake_mode = False
+        log.info("Mac active — listening normally")
 
     def start(self) -> None:
         threading.Thread(target=self._loop, daemon=True, name="mic-relay").start()
@@ -179,7 +190,6 @@ class _MicRelay:
 
     def _loop(self) -> None:
         while True:
-            # Don't record while the device is speaking (avoids echo)
             if self._speaking.is_set():
                 time.sleep(0.1)
                 continue
@@ -188,12 +198,34 @@ class _MicRelay:
             if not wav:
                 continue
 
-            response, utterance = self._send(wav)
+            response, utterance, extras = self._send(wav)
+
+            # Desktop sent sleep signal ("shift to desktop" was said)
+            if extras.get("mac_sleep"):
+                self.enter_wake_mode()
+
+            # Desktop confirmed wake word ("Samantha" detected)
+            if extras.get("mac_wake"):
+                self.exit_wake_mode()
+
+            # In wake mode: only process if wake word was in the utterance
+            if self._wake_mode:
+                if self.WAKE_WORD in utterance.lower():
+                    self.exit_wake_mode()
+                    # Speak the response (e.g. "Yes?") then stay active for next query
+                    if response:
+                        self.set_speaking(True)
+                        self._on_resp(response)
+                        time.sleep(0.4)
+                        self.set_speaking(False)
+                # else: no wake word, discard silently
+                continue
+
+            # Normal active mode
             if response:
                 log.info("  MARK : %s", response[:100])
                 self.set_speaking(True)
                 self._on_resp(response)
-                # Small gap so TTS finishes before mic re-arms
                 time.sleep(0.4)
                 self.set_speaking(False)
 
@@ -259,8 +291,8 @@ class _MicRelay:
             wf.writeframes(b"".join(chunks))
         return buf.getvalue()
 
-    def _send(self, wav_bytes: bytes) -> tuple[str, str]:
-        """POST WAV to /mesh/voice, return (answer, utterance)."""
+    def _send(self, wav_bytes: bytes) -> tuple[str, str, dict]:
+        """POST WAV to /mesh/voice, return (answer, utterance, extras)."""
         try:
             import requests
             r = requests.post(
@@ -274,15 +306,15 @@ class _MicRelay:
                 timeout = 60,
             )
             if r.status_code == 200:
-                d = r.json()
+                d    = r.json()
                 utt  = d.get("utterance", "")
                 text = d.get("text", "")
                 if utt:
                     log.info("  YOU  : %s", utt)
-                return text, utt
+                return text, utt, d
         except Exception as e:
             log.warning("Voice relay send failed: %s", e)
-        return "", ""
+        return "", "", {}
 
 
 # ─── MARKDeviceClient ─────────────────────────────────────────────────────────
