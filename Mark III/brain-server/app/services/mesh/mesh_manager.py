@@ -437,6 +437,12 @@ class MeshManager:
                         "time":   datetime.now().isoformat(),
                     })
 
+                elif self.path == "/mesh/active":
+                    from app.services.voice.always_listening_loop import (
+                        get_active_voice_device,
+                    )
+                    self._send(200, {"active_device": get_active_voice_device()})
+
                 else:
                     self._send(404, {"error": "endpoint not found"})
 
@@ -458,19 +464,64 @@ class MeshManager:
                     try:
                         from app.services.voice.always_listening_loop import (
                             transcribe, query_council, set_mesh_relay_active,
+                            get_active_voice_device, set_active_voice_device,
+                            parse_shift_target,
                         )
                         from app.services.voice.reflex_router import match as _social
                         from app.services.reflex.reflex_router import route as _sys
                         from app.services.voice.conversation_buffer import SentenceValidator
 
                         validator = SentenceValidator()
-
-                        # Lock desktop voice loop — prevent double response
                         set_mesh_relay_active(True)
 
                         # STT
                         text = transcribe(wav_bytes)
                         log.info("  Device STT (%s): %r", device_id, text[:80])
+
+                        if not text:
+                            self._send(200, {"text": "", "utterance": ""})
+                            set_mesh_relay_active(False)
+                            return
+
+                        # ── Active device gate ────────────────────────────────────
+                        # If desktop is the active voice device, Mac relay should
+                        # stay quiet — UNLESS it's a shift command.
+                        active_dev = get_active_voice_device()
+                        mac_is_active = (active_dev != "desktop" and active_dev != "")
+
+                        # Shift commands always work regardless of active device
+                        shift = parse_shift_target(text)
+                        if shift == "desktop":
+                            set_active_voice_device("desktop")
+                            ack = "Switching to desktop. Desktop is now speaking."
+                            self._send(200, {"text": ack, "utterance": text})
+                            set_mesh_relay_active(False)
+                            return
+                        if shift and not mac_is_active:
+                            # e.g. "shift to mac" said while desktop is already active
+                            # treat as re-activating Mac
+                            set_active_voice_device(device_id)
+                            ack = f"Switching back to {device_id.split('-')[0].title()}."
+                            self._send(200, {"text": ack, "utterance": text})
+                            set_mesh_relay_active(False)
+                            return
+
+                        # Desktop is active — Mac not the voice interface right now
+                        if not mac_is_active:
+                            log.debug("Desktop is active voice device — silent response to %s", device_id)
+                            self._send(200, {"text": "", "utterance": text, "device_inactive": True})
+                            set_mesh_relay_active(False)
+                            return
+
+                        # Remote device command: "on the desktop, [command]"
+                        import re as _re2
+                        _remote_m = _re2.match(
+                            r'\bon\s+(?:the\s+)?desktop\s*[,:]?\s*(?P<cmd>.+)',
+                            text.strip(), _re2.I
+                        )
+                        if _remote_m:
+                            text = _remote_m.group("cmd").strip()
+                            log.info("Remote desktop command: %r", text[:60])
 
                         if not text or validator.is_noise(text):
                             self._send(200, {"text": "", "utterance": text or ""})
@@ -552,6 +603,17 @@ class MeshManager:
                         self._send(200, {"status": "ok", "device": device.to_dict()})
                     else:
                         self._send(404, {"error": "device not registered — call /mesh/register first"})
+
+                elif self.path == "/mesh/activate":
+                    # Physical hotkey endpoint: force a device to become active voice interface
+                    device_id = payload.get("device_id") if payload else None
+                    if device_id:
+                        from app.services.voice.always_listening_loop import set_active_voice_device
+                        set_active_voice_device(device_id)
+                        log.info("Device activated via hotkey: %s", device_id)
+                        self._send(200, {"status": "activated", "active": device_id})
+                    else:
+                        self._send(400, {"error": "device_id required"})
 
                 else:
                     self._send(404, {"error": "endpoint not found"})

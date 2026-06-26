@@ -803,8 +803,9 @@ class AlwaysListeningLoop:
             _beep(660, 0.07)
             self._tts.speak(ack, threading.Event())
 
-        # Desktop now sleeps — only /mesh/voice wakes it to process
-        self._set_state(ServiceState.SLEEPING)
+        # Desktop stays awake — continues processing but won't speak via Piper
+        # until shifted back. _desktop_speaks check in the cycle handles output.
+        self._set_state(ServiceState.WAIT_FOR_SPEECH)
 
     @staticmethod
     def _build_recommendations(
@@ -1125,13 +1126,10 @@ class AlwaysListeningLoop:
         except Exception:
             pass
 
-        # ── 3. Desktop is silent processor — skip voice output ────────────
-        # When another device is the active voice interface, the desktop
-        # processes /mesh/voice requests but never speaks or listens here.
-        if not is_desktop_active():
-            log.debug("Desktop in processor mode — skipping local voice cycle")
-            self._set_state(ServiceState.SLEEPING)
-            return
+        # Phase 16 revised: desktop always processes (for shift commands + context)
+        # but only SPEAKS via Piper when it is the active voice device.
+        # State is owned by the brain — no syncing needed with Mac.
+        _desktop_speaks = is_desktop_active()
 
         # ── 3. Control commands ────────────────────────────────────────────
         clean = text.strip().lower().rstrip(".!?,; ")
@@ -1258,16 +1256,19 @@ class AlwaysListeningLoop:
             except Exception as e:
                 log.debug("Handoff failed: %s", e)
 
-        # ── 6. Speak — always finishes full response ───────────────────────
-        # No barge-in: MARK completes the sentence before re-listening.
-        # Only programmatic interrupts (sleep/mute/restart via tray) can stop it.
+        # ── 6. Speak — ONLY when desktop is the active voice device ──────────
+        # If Mac is active, desktop processed the query (for history/context)
+        # but Piper stays silent. Mac's Samantha will speak via /mesh/voice.
         self._set_state(ServiceState.SPEAKING)
         self._interrupt.clear()
 
         t_tts = time.monotonic()
-        if not self.is_muted():
+        if not self.is_muted() and _desktop_speaks:
             _beep(660, 0.07)
             self._tts.speak(answer, self._interrupt)
+        elif not _desktop_speaks:
+            log.debug("Desktop processed but not speaking — %s is active voice device",
+                      get_active_voice_device())
         ds.tts_latency_ms = (time.monotonic() - t_tts) * 1000
 
         # ── 7. Diagnostics ────────────────────────────────────────────────
