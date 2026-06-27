@@ -38,7 +38,26 @@
       "Bash(git add *)",
       "Bash(git rm *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "PowerShell($env:USERNAME)",
+      "PowerShell($env:USERDOMAIN)",
+      "PowerShell(Get-Service -Name TermService)",
+      "PowerShell(Start-Service TermService)",
+      "PowerShell(netstat -ano)",
+      "PowerShell(\\(Get-WmiObject Win32_OperatingSystem\\).Caption)",
+      "PowerShell(powercfg /change standby-timeout-ac 0)",
+      "PowerShell(powercfg /change hibernate-timeout-ac 0)",
+      "PowerShell(powercfg /change monitor-timeout-ac 0)",
+      "PowerShell(powercfg /change disk-timeout-ac 0)",
+      "PowerShell(reg add \"HKCU\\\\Control Panel\\\\Desktop\" /v ScreenSaveActive /t REG_SZ /d \"0\" /f)",
+      "PowerShell(reg add \"HKCU\\\\Control Panel\\\\Desktop\" /v ScreenSaverIsSecure /t REG_SZ /d \"0\" /f)",
+      "PowerShell(& \"C:\\\\Program Files \\(x86\\)\\\\AnyDesk\\\\AnyDesk.exe\" --install-service 2>&1)",
+      "PowerShell(Get-Service -Name AnyDesk -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\AnyDesk\\\\\", \"C:\\\\Program Files \\(x86\\)\\\\AnyDesk\\\\\", \"$env:LOCALAPPDATA\\\\AnyDesk\\\\\" -Filter \"AnyDesk.exe\" -ErrorAction SilentlyContinue | Select -ExpandProperty FullName)",
+      "PowerShell(\\(Get-Command anydesk -ErrorAction SilentlyContinue\\).Source)",
+      "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\Downloads\\\\AnyDesk.exe\" --install-service)",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\Downloads\\\\AnyDesk.exe\" -ArgumentList \"--install-service\" -Verb RunAs -Wait; Get-Service AnyDesk -ErrorAction SilentlyContinue | Select Name, Status, StartType)",
+      "Bash(mkdir -p \"C:/Users/Celluloid Solutions/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/a46fc274-e53c-4d55-9117-63e402aadb11/6345d0ab-4940-48ce-b453-df5bfb386e7c/skills/ios-dev\")"
     ]
   }
 }
