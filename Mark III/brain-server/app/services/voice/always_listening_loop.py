@@ -406,11 +406,21 @@ def _start_council_loop() -> None:
             from app.services.reflex.reflex_router import warm_weather_cache
             warm_weather_cache()
             log.info("Reflex: weather cache warming in background")
-            # Give weather a moment to fetch before the greeting fires
             await asyncio.sleep(2.0)
         except Exception as e:
             log.debug("Weather cache warm skipped: %s", e)
-        # Signal all modules ready — worker loop can now speak the greeting
+
+        # Initialize Obsidian knowledge base (non-blocking)
+        try:
+            import threading as _t
+            def _init_kb():
+                from app.services.knowledge.knowledge_manager import initialize_knowledge_base
+                initialize_knowledge_base()
+            _t.Thread(target=_init_kb, daemon=True, name="kb-init").start()
+            log.info("Knowledge base initialization started in background")
+        except Exception as e:
+            log.debug("Knowledge base init skipped: %s", e)
+
         _startup_complete.set()
         log.info("Startup complete — greeting queued")
 

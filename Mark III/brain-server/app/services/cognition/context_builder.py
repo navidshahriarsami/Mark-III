@@ -115,9 +115,27 @@ def build_context(
         except Exception:
             pass
 
-    # ── Memory retrieval (skip for pure social/factual_live) ──────────────────
+    # ── Knowledge + Memory retrieval (skip for social/factual_live) ───────────
     if intent.intent not in (Intent.SOCIAL, Intent.FACTUAL_LIVE):
-        _add_memory_context(pkg, query, top_k_memory, memory_min_score, direct_threshold)
+        # Use knowledge manager: Obsidian + ChromaDB combined
+        try:
+            from app.services.knowledge.knowledge_manager import query_knowledge
+            kctx = query_knowledge(query, top_k=top_k_memory, min_score=memory_min_score)
+            if kctx.combined_text:
+                pkg.memory_context = kctx.combined_text
+                # Check for direct answer from knowledge base
+                all_results = kctx.obsidian_results + kctx.vector_results
+                for r in all_results:
+                    score = getattr(r, "score", 0)
+                    content = getattr(r, "content", "")
+                    if score >= direct_threshold and not pkg.direct_answer and content:
+                        pkg.direct_answer = content
+                        pkg.direct_score  = score
+                        break
+        except Exception as e:
+            log.debug("Knowledge query error: %s", e)
+            # Fallback to old memory path
+            _add_memory_context(pkg, query, top_k_memory, memory_min_score, direct_threshold)
 
     return pkg
 

@@ -61,7 +61,9 @@
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\('Path','Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('Path','User'\\); ollama pull nomic-embed-text)",
       "PowerShell(Set-Location \"C:\\\\Users\\\\Celluloid Solutions\\\\Desktop\\\\idea72\\\\Mark III\\\\brain-server\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m app.services.memory.mark_knowledge)",
       "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m pip install chromadb --quiet)",
-      "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -c \"import chromadb; print\\('chromadb', chromadb.__version__\\)\")"
+      "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -c \"import chromadb; print\\('chromadb', chromadb.__version__\\)\")",
+      "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m pip install watchdog --quiet)",
+      "PowerShell(python -c \"import watchdog; print\\('watchdog', watchdog.__version__\\)\")"
     ]
   }
 }
