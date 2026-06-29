@@ -63,7 +63,8 @@
       "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m pip install chromadb --quiet)",
       "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -c \"import chromadb; print\\('chromadb', chromadb.__version__\\)\")",
       "PowerShell(& \"C:\\\\Users\\\\Celluloid Solutions\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe\" -m pip install watchdog --quiet)",
-      "PowerShell(python -c \"import watchdog; print\\('watchdog', watchdog.__version__\\)\")"
+      "PowerShell(python -c \"import watchdog; print\\('watchdog', watchdog.__version__\\)\")",
+      "PowerShell(Get-Process -Name \"Obsidian\" -ErrorAction SilentlyContinue | Select-Object Name, Id; Get-ChildItem \"$env:APPDATA\\\\obsidian\" -ErrorAction SilentlyContinue | Select-Object Name)"
     ]
   }
 }
