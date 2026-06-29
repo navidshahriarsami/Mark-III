@@ -18,3 +18,7 @@ Vector memory is experiential — it learns from conversations. Obsidian is auth
 ## Consequence
 
 The MARK III project folder (`idea72/Mark III/`) is the initial vault. Every markdown file in it is indexed and searchable. This document you're reading is part of that index.
+
+---
+
+[[knowledge_engine]] · [[memory_architecture]] · [[cognitive_pipeline]] · [[ADR-0004-Memory-Architecture]] · [[ADR-0007-Context-Builder]] · [[MARK_III_MANIFEST]]

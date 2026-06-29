@@ -39,3 +39,7 @@ Revenue model:
 ## Why This Matters
 
 The world's most powerful AI systems are inaccessible to most people — they require technical setup, cloud subscriptions, and privacy concessions. MARK changes that: powerful, private, personal, and completely owned by its user.
+
+---
+
+[[system_overview]] · [[engineering_principles]] · [[investor_summary]] · [[ADR-0001-Mark-Operating-System]] · [[future]] · [[MARK_HOME]]

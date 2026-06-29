@@ -40,3 +40,7 @@ Priority order:
 ## Future Impact
 
 This pipeline is extensible: new data sources become Integration Manager modules. New query types become Intent Classifier patterns. The LLM role remains constant: reasoning, not retrieval.
+
+---
+
+[[cognitive_pipeline]] · [[system_overview]] · [[ADR-0007-Context-Builder]] · [[ADR-0008-Qwen-Reasoning-Only]] · [[ADR-0009-Integration-Manager-Truth]] · [[memory_architecture]] · [[engineering_principles]]

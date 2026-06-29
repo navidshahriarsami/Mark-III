@@ -82,3 +82,7 @@ Piper TTS → voice output
 - [Memory Architecture](memory_architecture.md)
 - [Identity Engine](identity_engine.md)
 - [Knowledge Engine](knowledge_engine.md)
+
+---
+
+[[cognitive_pipeline]] · [[device_mesh]] · [[memory_architecture]] · [[identity_engine]] · [[knowledge_engine]] · [[ADR-0001-Mark-Operating-System]] · [[ADR-0002-Cognitive-Pipeline]] · [[MARK_VERSION]] · [[MARK_HOME]]

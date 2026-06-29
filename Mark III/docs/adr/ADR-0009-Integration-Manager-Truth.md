@@ -22,3 +22,7 @@ Time, weather, and battery change constantly. A vector memory embedding from 30 
 ## Consequence
 
 When asked "what time is it in Tokyo?", MARK queries the time service with tzdata. The response is always accurate. Qwen never guesses.
+
+---
+
+[[cognitive_pipeline]] · [[memory_architecture]] · [[ADR-0002-Cognitive-Pipeline]] · [[ADR-0004-Memory-Architecture]] · [[ADR-0007-Context-Builder]] · [[ADR-0008-Qwen-Reasoning-Only]] · [[engineering_principles]]

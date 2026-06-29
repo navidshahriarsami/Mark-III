@@ -109,3 +109,7 @@ Any new Claude session working on MARK III must read in this order:
 
 **Never** rely on conversation history as architectural truth.
 The repository is the single source of truth.
+
+---
+
+[[MARK_HOME]] · [[MARK_III_MANIFEST]] · [[system_overview]] · [[cognitive_pipeline]] · [[completed_phases]] · [[future]] · [[engineering_principles]]

@@ -23,3 +23,7 @@ Qwen 14B: for Council-tier deep reasoning where 5-30s latency is expected.
 ## Consequence
 
 Qwen is fast and accurate because it doesn't hallucinate facts — it reasons over facts already retrieved. The 20-word voice limit enforces concise, direct responses.
+
+---
+
+[[cognitive_pipeline]] · [[system_overview]] · [[ADR-0002-Cognitive-Pipeline]] · [[ADR-0007-Context-Builder]] · [[ADR-0009-Integration-Manager-Truth]] · [[engineering_principles]]

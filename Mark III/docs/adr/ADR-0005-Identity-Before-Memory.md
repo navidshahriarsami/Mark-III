@@ -16,3 +16,7 @@ Memory tells MARK what happened. Identity tells MARK who they're talking to. The
 ## Consequence
 
 `user_profile.json` is the permanent source of owner identity. It evolves slowly via the Learning Engine. It is never replaced by conversation summaries.
+
+---
+
+[[identity_engine]] · [[memory_architecture]] · [[cognitive_pipeline]] · [[ADR-0004-Memory-Architecture]] · [[ADR-0001-Mark-Operating-System]] · [[engineering_principles]]

@@ -31,3 +31,7 @@ Action executors:
 ## Status
 
 Not yet implemented. Scaffolding exists in `app/services/actions/`. Implementation is Phase 17.
+
+---
+
+[[future]] · [[cognitive_pipeline]] · [[identity_engine]] · [[device_mesh]] · [[ADR-0001-Mark-Operating-System]] · [[ADR-0003-Device-Mesh]] · [[investor_summary]]

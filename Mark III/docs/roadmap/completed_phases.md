@@ -85,3 +85,7 @@
 - Context Builder (unified context package before Qwen)
 - Obsidian Knowledge Bridge (vault indexer, markdown parser, 60s watch)
 - User Profile + Identity Engine (learning, activity tracking, session summarizer)
+
+---
+
+[[future]] · [[system_overview]] · [[cognitive_pipeline]] · [[device_mesh]] · [[memory_architecture]] · [[identity_engine]] · [[MARK_VERSION]] · [[CHANGELOG]]

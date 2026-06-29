@@ -76,3 +76,8 @@ Future (Phase 17A): Self-hosted WireGuard relay (`MARK Connect`) replaces Tailsc
 
 - [System Overview](system_overview.md)
 - [Presence Fusion](../api/presence_fusion.md)
+- [Mesh API Reference](../api/mesh_api.md)
+
+---
+
+[[system_overview]] · [[cognitive_pipeline]] · [[mesh_api]] · [[ADR-0003-Device-Mesh]] · [[future]] · [[MARK_VERSION]]

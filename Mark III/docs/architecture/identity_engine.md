@@ -82,3 +82,7 @@ No architecture change required. The profile schema already supports all mobile-
 
 - [Memory Architecture](memory_architecture.md)
 - [Knowledge Engine](knowledge_engine.md)
+
+---
+
+[[memory_architecture]] · [[knowledge_engine]] · [[cognitive_pipeline]] · [[system_overview]] · [[ADR-0005-Identity-Before-Memory]] · [[ADR-0001-Mark-Operating-System]] · [[future]] · [[vision]]

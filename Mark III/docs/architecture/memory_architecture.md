@@ -67,3 +67,7 @@ Integration APIs  → real-time truth (never stored in memory)
 - [Cognitive Pipeline](cognitive_pipeline.md)
 - [Knowledge Engine](knowledge_engine.md)
 - [Identity Engine](identity_engine.md)
+
+---
+
+[[cognitive_pipeline]] · [[knowledge_engine]] · [[identity_engine]] · [[system_overview]] · [[ADR-0004-Memory-Architecture]] · [[ADR-0006-Obsidian-Knowledge-Authority]] · [[ADR-0005-Identity-Before-Memory]]

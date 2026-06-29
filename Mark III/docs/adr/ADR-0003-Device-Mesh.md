@@ -33,3 +33,7 @@ When the Mac device client managed its own active/standby state, both devices wo
 ## Future Impact
 
 Any new device (iPhone, Watch) follows the same pattern: it always sends to the brain, the brain decides. No device-side state management.
+
+---
+
+[[device_mesh]] · [[system_overview]] · [[mesh_api]] · [[ADR-0001-Mark-Operating-System]] · [[future]] · [[cognitive_pipeline]]

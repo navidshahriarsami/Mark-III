@@ -59,3 +59,7 @@ MARK III solves all five problems:
 - Phase 17: Universal Actions (desktop automation)
 - Phase 17A: MARK Connect (self-hosted relay, commercial infrastructure)
 - Phase 18: MARK Box hardware product
+
+---
+
+[[vision]] · [[system_overview]] · [[future]] · [[ADR-0001-Mark-Operating-System]] · [[engineering_principles]] · [[MARK_VERSION]]

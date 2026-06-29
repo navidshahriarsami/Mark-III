@@ -41,3 +41,7 @@ The owner profile is injected before any memory context. MARK knows WHO before i
 ## 10. Documentation Is Architecture
 
 This repository is the source of truth. Every architectural decision must be captured in `docs/adr/`. Conversation history is not architecture.
+
+---
+
+[[vision]] · [[system_overview]] · [[cognitive_pipeline]] · [[ADR-0001-Mark-Operating-System]] · [[ADR-0002-Cognitive-Pipeline]] · [[MARK_VERSION]] · [[MARK_HOME]]

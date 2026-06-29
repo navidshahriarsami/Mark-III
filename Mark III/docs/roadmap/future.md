@@ -105,3 +105,7 @@
 - Owner mode vs. guest mode
 - `voice_profile.py` architecture already in place
 - Biometric implementation: pyannote.audio
+
+---
+
+[[completed_phases]] · [[system_overview]] · [[device_mesh]] · [[identity_engine]] · [[ADR-0003-Device-Mesh]] · [[ADR-0010-Universal-Actions]] · [[MARK_VERSION]] · [[investor_summary]]

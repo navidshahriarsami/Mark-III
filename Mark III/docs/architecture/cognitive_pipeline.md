@@ -77,3 +77,7 @@ Council          (5-30s, remote API)
 - [Memory Architecture](memory_architecture.md)
 - [Integration Layer](integration_layer.md)
 - [Context Builder](context_builder.md)
+
+---
+
+[[system_overview]] · [[memory_architecture]] · [[identity_engine]] · [[knowledge_engine]] · [[ADR-0002-Cognitive-Pipeline]] · [[ADR-0007-Context-Builder]] · [[ADR-0008-Qwen-Reasoning-Only]] · [[ADR-0009-Integration-Manager-Truth]]

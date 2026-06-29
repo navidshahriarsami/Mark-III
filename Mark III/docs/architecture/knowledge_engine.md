@@ -68,3 +68,7 @@ The MARK III project folder (`idea72/Mark III/`) serves as the initial vault. Th
 
 - [Memory Architecture](memory_architecture.md)
 - [Cognitive Pipeline](cognitive_pipeline.md)
+
+---
+
+[[memory_architecture]] · [[cognitive_pipeline]] · [[identity_engine]] · [[system_overview]] · [[ADR-0006-Obsidian-Knowledge-Authority]] · [[ADR-0004-Memory-Architecture]] · [[ADR-0007-Context-Builder]] · [[MARK_III_MANIFEST]]

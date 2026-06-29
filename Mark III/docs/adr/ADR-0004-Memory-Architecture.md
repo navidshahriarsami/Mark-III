@@ -18,3 +18,7 @@ Memory is divided into four distinct layers with strict separation:
 - Obsidian is NOT conversational memory. It is structured knowledge.
 - Session memory is summarized (via Qwen) and valuable insights stored in vector memory on session end.
 - ChromaDB is primary. SQLite is fallback. Both use `nomic-embed-text` 768-dim embeddings.
+
+---
+
+[[memory_architecture]] · [[knowledge_engine]] · [[cognitive_pipeline]] · [[ADR-0006-Obsidian-Knowledge-Authority]] · [[ADR-0005-Identity-Before-Memory]] · [[ADR-0009-Integration-Manager-Truth]]
