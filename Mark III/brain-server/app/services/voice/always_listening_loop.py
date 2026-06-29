@@ -436,13 +436,40 @@ def query_council(text: str) -> str:
     except Exception as e:
         log.debug("Integration manager error: %s", e)
 
+    # Vector memory — check if this is a direct recall query ("what did we decide about X")
+    try:
+        from app.services.memory.vector_store import get_memory_store as _get_ms
+        _recall_triggers = ("what did we", "why did we", "what phase", "what is mark",
+                            "remind me", "what was decided", "our decision", "architecture")
+        if any(t in text.lower() for t in _recall_triggers):
+            mems = _get_ms().recall(text, top_k=2, min_score=0.5)
+            if mems and mems[0].score > 0.65:
+                log.info("Memory direct recall: score=%.2f", mems[0].score)
+                return mems[0].content
+    except Exception as e:
+        log.debug("Memory direct recall error: %s", e)
+
     if not _council_loop:
         return "Council offline."
     try:
         from app.services.council.council_manager  import get_council
         from app.services.voice.personality_engine import build_context_hint
 
+        # Vector memory recall — synchronous, runs before async council loop
+        _memory_context = ""
+        try:
+            from app.services.memory.vector_store import get_memory_store
+            _mems = get_memory_store().recall(text, top_k=3, min_score=0.45)
+            if _mems:
+                _memory_context = "MARK MEMORY:\n" + "\n".join(f"- {m.content}" for m in _mems)
+                log.debug("Memory recall: %d relevant memories injected", len(_mems))
+        except Exception as _me:
+            log.debug("Memory recall skipped: %s", _me)
+
         context = build_context_hint(text)
+        # Append memory context to the hint so Council + Qwen both see it
+        if _memory_context:
+            context = (_memory_context + "\n\n" + context).strip()
 
         async def _consult() -> str:
             session = await get_council().consult(

@@ -40,7 +40,7 @@ log = logging.getLogger("markiii.ai.qwen_local")
 _OLLAMA_BASE        = "http://localhost:11434"
 _MODEL              = "qwen2.5:7b"
 _HEALTH_TIMEOUT_S   = 2.0    # fast ping — fail quickly if Ollama is not running
-_GENERATE_TIMEOUT_S = 12.0   # generous for first cold inference after idle
+_GENERATE_TIMEOUT_S = 20.0   # includes memory embedding (4s) + Qwen inference (10s)
 
 # Cached availability state: None = never checked, True = ok, False = unavailable
 _available: Optional[bool] = None
@@ -177,6 +177,8 @@ async def generate(
     except Exception:
         pass
 
+    # Memory context injected by caller (query_council) — see always_listening_loop.py
+
     # Build message list: system + conversation history + current turn
     with _history_lock:
         history_snapshot = list(_history)
@@ -250,3 +252,23 @@ def is_available() -> bool:
 
 def model_name() -> str:
     return _MODEL
+
+
+def remember(content: str, category: str = "context", tags: list = None, phase: str = "") -> int:
+    """Store something in MARK's vector memory. Returns memory ID."""
+    try:
+        from app.services.memory.vector_store import get_memory_store
+        return get_memory_store().remember(content, category=category, tags=tags or [], phase=phase)
+    except Exception as e:
+        log.warning("Memory store failed: %s", e)
+        return -1
+
+
+def recall(query: str, top_k: int = 5) -> list:
+    """Query MARK's vector memory semantically."""
+    try:
+        from app.services.memory.vector_store import get_memory_store
+        return get_memory_store().recall(query, top_k=top_k)
+    except Exception as e:
+        log.warning("Memory recall failed: %s", e)
+        return []
