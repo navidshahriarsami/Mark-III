@@ -452,6 +452,23 @@ def query_council(text: str) -> str:
       6. Qwen 7B               (conversation/reasoning)
       7. Council               (complex/multi-step)
     """
+    # ── 0. Structured Memory — authoritative facts bypass LLM ──────────
+    try:
+        from app.services.memory.recall_engine      import recall as _recall, is_fact_query as _is_fq
+        from app.services.memory.recall_diagnostics import diag as _rdiag, RecallEvent as _RE
+        import time as _t
+        if _is_fq(text):
+            _t0 = _t.monotonic()
+            _rf = _recall(text)
+            _ms = (_t.monotonic() - _t0) * 1000
+            _rdiag.record(_RE(query=text[:80], source=_rf.source,
+                              found=_rf.found, latency_ms=_ms, confidence=_rf.confidence))
+            if _rf.found:
+                log.info("Fact recall (%s) %.0fms — LLM bypassed", _rf.source, _ms)
+                return _rf.answer
+    except Exception as _re:
+        log.debug("Recall engine error: %s", _re)
+
     # ── 1. Integration Manager — live factual data ──────────────────────
     try:
         from app.services.integrations.integration_manager import route as _integ_route
@@ -1481,6 +1498,15 @@ class AlwaysListeningLoop:
                 self._set_state(ServiceState.THINKING)
 
         print(f"  YOU  : {text}", flush=True)
+
+        # ── Fact extraction — detect and store facts from utterances ───
+        try:
+            from app.services.memory.structured_memory import process_utterance
+            _stored = process_utterance(text, owner_name="Navid")
+            if _stored:
+                log.info("Facts stored from utterance: %d", len(_stored))
+        except Exception as _fe:
+            log.debug("Fact extraction: %s", _fe)
 
         # ── 4. Answer (reflex or council) ─────────────────────────────
         if _reflex:

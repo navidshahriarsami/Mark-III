@@ -443,6 +443,22 @@ class MeshManager:
                     )
                     self._send(200, {"active_device": get_active_voice_device()})
 
+                elif self.path.startswith("/memory/facts"):
+                    from app.services.memory.fact_store import get_fact_store
+                    from urllib.parse import parse_qs, urlparse
+                    qs = parse_qs(urlparse(self.path).query)
+                    facts = get_fact_store().search(
+                        subject   = qs.get("subject",   [""])[0],
+                        predicate = qs.get("predicate", [""])[0],
+                        category  = qs.get("category",  [""])[0],
+                    )
+                    self._send(200, {"facts": [f.to_dict() for f in facts]})
+
+                elif self.path == "/memory/stats":
+                    from app.services.memory.structured_memory import memory_stats
+                    from app.services.memory.recall_diagnostics import diag
+                    self._send(200, {"facts": memory_stats(), "recall": diag.summary()})
+
                 else:
                     self._send(404, {"error": "endpoint not found"})
 
@@ -614,6 +630,47 @@ class MeshManager:
                         self._send(200, {"status": "activated", "active": device_id})
                     else:
                         self._send(400, {"error": "device_id required"})
+
+                # ── Memory / Fact API ───────────────────────────────────────────
+
+                elif self.path == "/memory/facts":
+                    from app.services.memory.fact_store import get_fact_store
+                    body = payload or {}
+                    facts = get_fact_store().search(
+                        subject   = body.get("subject", ""),
+                        predicate = body.get("predicate", ""),
+                        category  = body.get("category", ""),
+                    )
+                    self._send(200, {"facts": [f.to_dict() for f in facts]})
+
+                elif self.path == "/memory/fact":
+                    from app.services.memory.structured_memory import remember
+                    if not payload or not all(k in payload for k in ("subject", "predicate", "value")):
+                        self._send(400, {"error": "subject, predicate, value required"})
+                        return
+                    fact = remember(
+                        subject    = payload["subject"],
+                        predicate  = payload["predicate"],
+                        raw_value  = payload["value"],
+                        confidence = float(payload.get("confidence", 1.0)),
+                        confirmed  = bool(payload.get("confirmed", True)),
+                        source     = payload.get("source", "api"),
+                    )
+                    self._send(200, {"fact": fact.to_dict()})
+
+                elif self.path == "/memory/confirm":
+                    from app.services.memory.structured_memory import confirm_fact
+                    fact_id = (payload or {}).get("fact_id")
+                    if not fact_id:
+                        self._send(400, {"error": "fact_id required"})
+                        return
+                    confirm_fact(fact_id)
+                    self._send(200, {"status": "confirmed"})
+
+                elif self.path == "/memory/stats":
+                    from app.services.memory.structured_memory import memory_stats
+                    from app.services.memory.recall_diagnostics import diag
+                    self._send(200, {"facts": memory_stats(), "recall": diag.summary()})
 
                 else:
                     self._send(404, {"error": "endpoint not found"})

@@ -1,0 +1,42 @@
+{
+  "evening_conversation_queries": {
+    "key": "evening_conversation_queries",
+    "description": "User frequently asks conversation questions in the evening",
+    "category": "query",
+    "count": 15,
+    "confidence": 0.5,
+    "first_seen": "2026-06-30T03:53:45",
+    "last_seen": "2026-06-30T04:07:49",
+    "confirmed": true
+  },
+  "late_evening_work": {
+    "key": "late_evening_work",
+    "description": "User works late (after 20:00)",
+    "category": "time",
+    "count": 9,
+    "confidence": 0.3,
+    "first_seen": "2026-06-30T03:53:45",
+    "last_seen": "2026-06-30T03:59:54",
+    "confirmed": false
+  },
+  "evening_recall_queries": {
+    "key": "evening_recall_queries",
+    "description": "User frequently asks recall questions in the evening",
+    "category": "query",
+    "count": 4,
+    "confidence": 0.13333333333333333,
+    "first_seen": "2026-06-30T03:55:52",
+    "last_seen": "2026-06-30T04:07:24",
+    "confirmed": false
+  },
+  "evening_reasoning_queries": {
+    "key": "evening_reasoning_queries",
+    "description": "User frequently asks reasoning questions in the evening",
+    "category": "query",
+    "count": 1,
+    "confidence": 0.03333333333333333,
+    "first_seen": "2026-06-30T04:00:46",
+    "last_seen": "2026-06-30T04:00:46",
+    "confirmed": false
+  }
+}

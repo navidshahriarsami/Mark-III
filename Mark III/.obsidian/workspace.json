@@ -11,10 +11,14 @@
             "id": "71f0bf8052108e69",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "docs/adr/ADR-0001-Mark-Operating-System.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ADR-0001-Mark-Operating-System"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "docs/adr/ADR-0001-Mark-Operating-System.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for ADR-0001-Mark-Operating-System"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "docs/adr/ADR-0001-Mark-Operating-System.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links"
+              "title": "Outgoing links from ADR-0001-Mark-Operating-System"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "docs/adr/ADR-0001-Mark-Operating-System.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of ADR-0001-Mark-Operating-System"
             }
           }
         ]
@@ -178,6 +185,18 @@
   },
   "active": "71f0bf8052108e69",
   "lastOpenFiles": [
+    "brain-server/chroma_db/chroma.sqlite3-journal",
+    "brain-server/habit_data.json",
+    "brain-server/app/services/identity/__pycache__/preference_manager.cpython-311.pyc",
+    "brain-server/app/services/identity/__pycache__/activity_tracker.cpython-311.pyc",
+    "brain-server/app/services/knowledge/__pycache__/knowledge_router.cpython-311.pyc",
+    "brain-server/app/services/cognition/__pycache__/context_builder.cpython-311.pyc",
+    "brain-server/app/services/identity/__pycache__/identity_diagnostics.cpython-311.pyc",
+    "brain-server/app/services/identity/__pycache__/learning_engine.cpython-311.pyc",
+    "brain-server/app/services/knowledge/__pycache__/knowledge_manager.cpython-311.pyc",
+    "Untitled 1.canvas",
+    "2026-06-30.md",
+    "Untitled.canvas",
     "docs/adr/ADR-0001-Mark-Operating-System.md",
     "MARK_HOME.md",
     "MARK_III_MANIFEST.md",
@@ -188,17 +207,6 @@
     "README.md",
     "CHANGELOG.md",
     "CHANGELOG.md.tmp.41932.7c9f904e6d38",
-    "MARK_HOME.md.tmp.41932.2e6a8e31800b",
-    "MARK_HOME.md.tmp.2552.01f4426371f7",
-    "mobile",
-    "shared/schemas",
-    "shared/memory",
-    "shared/protocols",
-    "shared/contracts",
-    "shared/interfaces",
-    "Untitled 1.canvas",
-    "Untitled.canvas",
-    "2026-06-30.md",
     "MARK_VERSION.md",
     "brain-server/MARK_III_MANIFEST.md",
     "docs/adr/ADR-0006-Obsidian-Knowledge-Authority.md",
