@@ -3,10 +3,10 @@
     "key": "evening_conversation_queries",
     "description": "User frequently asks conversation questions in the evening",
     "category": "query",
-    "count": 15,
-    "confidence": 0.5,
+    "count": 16,
+    "confidence": 0.5333333333333333,
     "first_seen": "2026-06-30T03:53:45",
-    "last_seen": "2026-06-30T04:07:49",
+    "last_seen": "2026-06-30T04:35:18",
     "confirmed": true
   },
   "late_evening_work": {

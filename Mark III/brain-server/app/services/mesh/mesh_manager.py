@@ -443,6 +443,29 @@ class MeshManager:
                     )
                     self._send(200, {"active_device": get_active_voice_device()})
 
+                elif self.path == "/governance/diagnostics":
+                    from app.services.governance.repository_diagnostics import run_diagnostics
+                    report = run_diagnostics()
+                    self._send(200, {
+                        "healthy":      report.healthy,
+                        "summary":      report.summary,
+                        "architecture": report.architecture,
+                        "memory":       report.memory,
+                        "recall":       report.recall,
+                        "adrs":         report.adrs,
+                        "version":      report.version,
+                        "knowledge":    report.knowledge,
+                        "latency_ms":   report.latency_ms,
+                    })
+
+                elif self.path == "/governance/constitution":
+                    from app.services.governance.constitution_manager import validate
+                    cs = validate()
+                    self._send(200, {
+                        "present": cs.present, "article_xv": cs.article_xv,
+                        "invariants": cs.invariants, "summary": cs.summary,
+                    })
+
                 elif self.path.startswith("/memory/facts"):
                     from app.services.memory.fact_store import get_fact_store
                     from urllib.parse import parse_qs, urlparse

@@ -279,6 +279,16 @@ class MarkService:
     # ------------------------------------------------------------------
 
     def _start_loop(self) -> None:
+        # Knowledge Governance System — must start before mesh and voice
+        try:
+            from app.services.governance.knowledge_governor import get_governor
+            from app.services.governance.constitution_manager import validate as _vc
+            _cs = _vc()
+            log.info("Constitution: %s", _cs.summary)
+            get_governor().start()
+        except Exception as e:
+            log.warning("Governance start error: %s", e)
+
         # Phase 16A: start device mesh before voice loop
         try:
             from app.services.mesh.mesh_manager import get_mesh_manager

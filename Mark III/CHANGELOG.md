@@ -5,6 +5,32 @@ Format: `[Version] — Date — Summary`
 
 ---
 
+## [0.19.0] — 2026-06-30 — MARK III Constitution + Knowledge Governance System
+
+**Type:** Constitutional milestone
+
+- CLAUDE.md created — permanent Article XV engineering directive for all future Claude sessions
+- Knowledge Governance System: 14-module subsystem in app/services/governance/
+- Knowledge Governor: orchestrates all governance routing; starts before mesh + voice
+- Knowledge Classifier: domain classification <1ms (Engineering/UserFact/Identity/Operational/Experiential/Temporary)
+- Knowledge Lifecycle: Draft→Implemented→Validated→Documented→Indexed→Embedded→Committed→Stable
+- Architecture Guardian: detects drift between implementation and documentation
+- Repository Observer: watchdog on docs/ (30s poll) → auto re-indexes ChromaDB on change
+- ADR Manager: creates/validates ADRs; ADR-0011 created for KGS
+- Version Manager: programmatic MARK_VERSION.md updates
+- Changelog Manager: programmatic CHANGELOG.md updates
+- Repository Diagnostics: full health report at GET /governance/diagnostics
+- Constitution Manager: validates CLAUDE.md on boot, reports Article XV status
+- GET /governance/diagnostics: architecture + memory + recall + ADRs + version in one call
+- GET /governance/constitution: reports constitutional invariants + Article XV status
+- Authoritative Memory Engine: fact_store.py (SQLite), fact_extractor.py, fact_normalizer.py
+- Recall engine bypasses LLM for all stored facts (structured→vector→LLM order)
+- Facts stored from every voice utterance automatically
+- POST /memory/fact, GET /memory/facts, GET /memory/stats endpoints live
+- Architecture v3.0: Governed Knowledge — repository is the constitution
+
+---
+
 ## [0.18.1] — 2026-06-30 — Repository Refactor
 
 **Type:** Structural (no runtime changes)

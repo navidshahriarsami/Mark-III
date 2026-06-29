@@ -9,11 +9,11 @@ Every new Claude session must read this file first.
 
 | Field | Value |
 |---|---|
-| **Software Version** | 0.18.0 |
-| **Architecture Version** | 2.0 (Cognitive Pipeline) |
-| **Current Phase** | Phase Identity (Personalization Engine) |
-| **Current Milestone** | Architecture Freeze & Knowledge Preservation |
-| **Last Updated** | 2026-06-28 |
+| **Software Version** | 0.19.0 |
+| **Architecture Version** | 3.0 (Governed Knowledge) |
+| **Current Phase** | Phase Constitution — Knowledge Governance System |
+| **Current Milestone** | MARK III Constitution + Authoritative Memory Engine |
+| **Last Updated** | 2026-06-30 |
 
 ---
 
