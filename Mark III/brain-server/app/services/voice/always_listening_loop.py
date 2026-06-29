@@ -420,34 +420,55 @@ def _start_council_loop() -> None:
 
 def query_council(text: str) -> str:
     """
-    Phase 18: Integration Manager → Council pipeline.
-    Factual queries are answered by services before reaching the LLM.
-    The LLM only handles conversation, reasoning, and personality.
+    Phase 18+ — Retrieval-first cognitive pipeline.
+
+    Priority:
+      1. Social Reflex         (<1ms)
+      2. Integration Manager   (<10ms)
+      3. Intent Classification (<2ms)
+      4. Context Builder       (memory + context assembly)
+      5. Direct Recall         (high-confidence memory bypasses LLM)
+      6. Qwen 7B               (conversation/reasoning)
+      7. Council               (complex/multi-step)
     """
-    # Phase 18: check integration manager first (time, system, weather, etc.)
+    # ── 1. Integration Manager — live factual data ──────────────────────
     try:
         from app.services.integrations.integration_manager import route as _integ_route
         from app.services.integrations.language_service    import get_current as _get_lang
-        lang    = _get_lang()
-        result  = _integ_route(text, lang.code)
+        lang   = _get_lang()
+        result = _integ_route(text, lang.code)
         if result.handled:
-            log.info("Integration(%s) %.0fms — bypassing LLM", result.source, result.latency_ms)
+            log.info("Integration(%s) %.0fms", result.source, result.latency_ms)
             return result.text
     except Exception as e:
         log.debug("Integration manager error: %s", e)
 
-    # Vector memory — check if this is a direct recall query ("what did we decide about X")
+    # ── 2. Intent Classification ────────────────────────────────────────
+    intent_result = None
     try:
-        from app.services.memory.vector_store import get_memory_store as _get_ms
-        _recall_triggers = ("what did we", "why did we", "what phase", "what is mark",
-                            "remind me", "what was decided", "our decision", "architecture")
-        if any(t in text.lower() for t in _recall_triggers):
-            mems = _get_ms().recall(text, top_k=2, min_score=0.5)
-            if mems and mems[0].score > 0.65:
-                log.info("Memory direct recall: score=%.2f", mems[0].score)
-                return mems[0].content
+        from app.services.cognition.intent_classifier import classify
+        intent_result = classify(text)
+        log.info("Intent: %s (%.0f%%)", intent_result.intent.value, intent_result.confidence * 100)
     except Exception as e:
-        log.debug("Memory direct recall error: %s", e)
+        log.debug("Intent classifier error: %s", e)
+
+    # ── 3. Context Builder — assemble memory + context package ──────────
+    ctx_string   = ""
+    direct_reply = None
+    try:
+        from app.services.cognition.context_builder import build_context
+        from app.services.cognition.intent_classifier import IntentResult, Intent
+        if intent_result is None:
+            from app.services.cognition.intent_classifier import classify
+            intent_result = classify(text)
+        pkg = build_context(text, intent_result)
+        ctx_string = pkg.to_prompt_string()
+        # Direct answer from memory (high-confidence recall bypasses LLM)
+        if pkg.direct_answer and pkg.direct_score >= 0.75:
+            log.info("Direct recall (%.2f): %s", pkg.direct_score, pkg.direct_answer[:60])
+            return pkg.direct_answer
+    except Exception as e:
+        log.debug("Context builder error: %s", e)
 
     if not _council_loop:
         return "Council offline."
@@ -467,8 +488,10 @@ def query_council(text: str) -> str:
             log.debug("Memory recall skipped: %s", _me)
 
         context = build_context_hint(text)
-        # Append memory context to the hint so Council + Qwen both see it
-        if _memory_context:
+        # Append assembled context package (memory + datetime + device)
+        if ctx_string:
+            context = (ctx_string + "\n\n" + context).strip()
+        elif _memory_context:
             context = (_memory_context + "\n\n" + context).strip()
 
         async def _consult() -> str:
