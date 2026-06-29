@@ -92,5 +92,26 @@ def _do_summarize(turns: list[dict]) -> None:
         )
         log.info("Session summary stored: %d chars", len(summary))
 
+        # Run pattern extraction on the summary
+        try:
+            from app.services.identity.pattern_extractor import (
+                extract_from_summary, apply_patterns_to_profile,
+            )
+            patterns = extract_from_summary(summary, use_qwen=False)
+            apply_patterns_to_profile(patterns)
+            if patterns:
+                log.debug("Extracted %d patterns from session", len(patterns))
+        except Exception as pe:
+            log.debug("Pattern extraction error: %s", pe)
+
+        # Record session end for habit detection
+        try:
+            from app.services.identity.habit_detector import get_habit_detector
+            h = datetime.now().hour
+            if h >= 20 or h <= 3:
+                get_habit_detector().observe_late_work()
+        except Exception:
+            pass
+
     except Exception as e:
         log.debug("Session summarize error: %s", e)

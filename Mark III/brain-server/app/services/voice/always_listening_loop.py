@@ -497,16 +497,21 @@ def query_council(text: str) -> str:
         from app.services.council.council_manager  import get_council
         from app.services.voice.personality_engine import build_context_hint
 
-        # Activity tracking
+        # Activity tracking + habit detection
         try:
             from app.services.identity.activity_tracker  import get_activity_tracker
             from app.services.identity.preference_manager import update_language_preference
+            from app.services.identity.habit_detector    import get_habit_detector
             from app.services.integrations.language_service import get_current as _gl
             _lang = _gl()
             if _lang.code != "en":
                 update_language_preference(_lang.code)
             if intent_result:
-                get_activity_tracker().record_query(text, intent_result.intent.value, get_active_voice_device())
+                _intent_str = intent_result.intent.value
+                get_activity_tracker().record_query(text, _intent_str, get_active_voice_device())
+                # Observe habits from query patterns
+                get_habit_detector().observe_query_type(_intent_str)
+                get_habit_detector().observe_late_work()
         except Exception:
             pass
 

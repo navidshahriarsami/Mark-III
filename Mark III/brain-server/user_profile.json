@@ -1,27 +1,47 @@
 {
   "user_id": "9914a648-a94f-4568-8a6d-914cfbe31ee1",
-  "display_name": "Navid",
+  "display_name": "Navid Shahriar Sami",
   "preferred_name": "Navid",
-  "email": "",
+  "email": "navid.shahriar.sami@gmail.com",
   "timezone": "Australia/Sydney",
   "languages": [
-    "en"
+    "en",
+    "bn"
   ],
   "occupation": "Developer & Entrepreneur",
   "organisation": "",
   "technical_level": "expert",
   "goals": [
-    "Build MARK as a personal AI OS",
-    "Launch PathwayAU"
+    "MARK Connect relay (Phase 17A) [project]",
+    "Universal Actions (Phase 17) [milestone]",
+    "Architecture Freeze complete [milestone]",
+    "Build MARK Mobile iOS app [project]",
+    "Build MARK as a commercial personal AI OS",
+    "Launch PathwayAU for Australian PR migration",
+    "Build MARK Mobile iOS app",
+    "Establish MARK Connect relay infrastructure"
   ],
-  "interests": [],
+  "interests": [
+    "AI systems",
+    "distributed computing",
+    "product design",
+    "immigration tech"
+  ],
   "current_projects": [
+    "MARK Connect relay (Phase 17A)",
+    "Build MARK Mobile iOS app",
     "MARK III",
     "PathwayAU"
   ],
   "primary_devices": [],
-  "preferred_apps": [],
-  "preferred_ide": "",
+  "preferred_apps": [
+    "Cursor",
+    "VS Code",
+    "Obsidian",
+    "Chrome",
+    "Xcode"
+  ],
+  "preferred_ide": "Cursor / VS Code",
   "preferred_browser": "",
   "preferred_shell": "",
   "working_pattern": {
@@ -75,7 +95,7 @@
   },
   "profile_version": "1.0.0",
   "created_at": "2026-06-29T23:41:02",
-  "updated_at": "2026-06-29T23:41:02",
-  "onboarded": false,
-  "onboarding_source": ""
+  "updated_at": "2026-06-30T00:06:15",
+  "onboarded": true,
+  "onboarding_source": "desktop"
 }

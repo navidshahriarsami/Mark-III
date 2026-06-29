@@ -15,6 +15,29 @@ from typing import Optional
 log = logging.getLogger("markiii.identity.profile")
 
 
+def get_full_context() -> str:
+    """
+    Returns the complete owner context: profile + goals + confirmed habits.
+    Used by Context Builder for full identity injection.
+    """
+    parts = []
+    profile_ctx = get_profile_context()
+    if profile_ctx:
+        parts.append(profile_ctx)
+
+    try:
+        from app.services.identity.goal_tracker   import get_goal_tracker
+        from app.services.identity.habit_detector import get_habit_detector
+        goal_summary  = get_goal_tracker().get_active_goals_summary()
+        habit_summary = get_habit_detector().get_profile_insights()
+        if goal_summary:  parts.append(goal_summary)
+        if habit_summary: parts.append(habit_summary)
+    except Exception:
+        pass
+
+    return "\n".join(parts)
+
+
 def get_profile_context() -> str:
     """
     Returns a compact profile context string for injection into Qwen.

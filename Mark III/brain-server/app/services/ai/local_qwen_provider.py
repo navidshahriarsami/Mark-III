@@ -177,14 +177,14 @@ async def generate(
     except Exception:
         pass
 
-    # Identity: inject owner profile + response style before reasoning
+    # Identity: inject owner profile + goals + habits + response style
     try:
-        from app.services.identity.profile_engine import get_profile_context, get_response_style_instruction
-        profile_ctx  = get_profile_context()
-        style_instr  = get_response_style_instruction(user_prompt)
+        from app.services.identity.profile_engine import get_full_context, get_response_style_instruction
+        full_ctx    = get_full_context()
+        style_instr = get_response_style_instruction(user_prompt)
         additions = []
-        if profile_ctx:  additions.append(profile_ctx)
-        if style_instr:  additions.append(style_instr)
+        if full_ctx:    additions.append(full_ctx)
+        if style_instr: additions.append(style_instr)
         if additions:
             effective_system = effective_system + "\n\n" + "\n".join(additions)
     except Exception:
