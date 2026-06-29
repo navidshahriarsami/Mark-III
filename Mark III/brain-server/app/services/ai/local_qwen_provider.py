@@ -177,6 +177,19 @@ async def generate(
     except Exception:
         pass
 
+    # Identity: inject owner profile + response style before reasoning
+    try:
+        from app.services.identity.profile_engine import get_profile_context, get_response_style_instruction
+        profile_ctx  = get_profile_context()
+        style_instr  = get_response_style_instruction(user_prompt)
+        additions = []
+        if profile_ctx:  additions.append(profile_ctx)
+        if style_instr:  additions.append(style_instr)
+        if additions:
+            effective_system = effective_system + "\n\n" + "\n".join(additions)
+    except Exception:
+        pass
+
     # Memory context injected by caller (query_council) — see always_listening_loop.py
 
     # Build message list: system + conversation history + current turn

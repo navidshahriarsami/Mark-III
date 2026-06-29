@@ -421,6 +421,17 @@ def _start_council_loop() -> None:
         except Exception as e:
             log.debug("Knowledge base init skipped: %s", e)
 
+        # Initialize identity system
+        try:
+            from app.services.identity.identity_manager    import get_identity_manager
+            from app.services.identity.learning_engine     import start_learning_scheduler
+            from app.services.identity.identity_diagnostics import log_identity_status
+            get_identity_manager()   # loads/creates profile
+            start_learning_scheduler(interval_hours=4.0)
+            log_identity_status()
+        except Exception as e:
+            log.debug("Identity init skipped: %s", e)
+
         _startup_complete.set()
         log.info("Startup complete — greeting queued")
 
@@ -485,6 +496,19 @@ def query_council(text: str) -> str:
     try:
         from app.services.council.council_manager  import get_council
         from app.services.voice.personality_engine import build_context_hint
+
+        # Activity tracking
+        try:
+            from app.services.identity.activity_tracker  import get_activity_tracker
+            from app.services.identity.preference_manager import update_language_preference
+            from app.services.integrations.language_service import get_current as _gl
+            _lang = _gl()
+            if _lang.code != "en":
+                update_language_preference(_lang.code)
+            if intent_result:
+                get_activity_tracker().record_query(text, intent_result.intent.value, get_active_voice_device())
+        except Exception:
+            pass
 
         # Vector memory recall — synchronous, runs before async council loop
         _memory_context = ""
@@ -1202,8 +1226,16 @@ class AlwaysListeningLoop:
         }
         if clean in _PAUSE_WORDS:
             log.info("Pause command: %r → sleeping (say 'Mark' to resume)", text)
-            from app.services.ai.local_qwen_provider import clear_history
-            clear_history()   # fresh context when resuming
+            from app.services.ai.local_qwen_provider import clear_history, _history
+            # Summarize session before clearing
+            try:
+                from app.services.identity.session_summarizer import summarize_session_async
+                from app.services.identity.activity_tracker   import get_activity_tracker
+                summarize_session_async(list(_history))
+                get_activity_tracker().record_session_end()
+            except Exception:
+                pass
+            clear_history()
             self._set_state(ServiceState.SLEEPING)
             self._say_quick("Paused.")
             return

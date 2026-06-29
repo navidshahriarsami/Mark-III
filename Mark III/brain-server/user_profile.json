@@ -1,0 +1,81 @@
+{
+  "user_id": "9914a648-a94f-4568-8a6d-914cfbe31ee1",
+  "display_name": "Navid",
+  "preferred_name": "Navid",
+  "email": "",
+  "timezone": "Australia/Sydney",
+  "languages": [
+    "en"
+  ],
+  "occupation": "Developer & Entrepreneur",
+  "organisation": "",
+  "technical_level": "expert",
+  "goals": [
+    "Build MARK as a personal AI OS",
+    "Launch PathwayAU"
+  ],
+  "interests": [],
+  "current_projects": [
+    "MARK III",
+    "PathwayAU"
+  ],
+  "primary_devices": [],
+  "preferred_apps": [],
+  "preferred_ide": "",
+  "preferred_browser": "",
+  "preferred_shell": "",
+  "working_pattern": {
+    "timezone": "",
+    "work_start": "09:00",
+    "work_end": "18:00",
+    "focus_hours": [
+      "09:00-12:00"
+    ],
+    "working_days": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri"
+    ]
+  },
+  "communication": {
+    "response_length": "concise",
+    "explanation_depth": "intermediate",
+    "tone": "professional",
+    "language": "en",
+    "prefers_examples": true,
+    "prefers_bullet_points": false
+  },
+  "notifications": {
+    "morning_brief": true,
+    "device_alerts": true,
+    "weather_alerts": true,
+    "do_not_disturb_start": "22:00",
+    "do_not_disturb_end": "07:00"
+  },
+  "privacy": {
+    "store_conversations": true,
+    "store_location": false,
+    "obsidian_indexing": true,
+    "analytics": false
+  },
+  "automation": {
+    "auto_open_apps": true,
+    "proactive_briefings": true,
+    "smart_defaults": true
+  },
+  "obsidian_vault": "",
+  "mesh_devices": [],
+  "voice_profile": {
+    "enrolled": false,
+    "enrollment_date": "",
+    "confidence_threshold": 0.85,
+    "model_version": ""
+  },
+  "profile_version": "1.0.0",
+  "created_at": "2026-06-29T23:41:02",
+  "updated_at": "2026-06-29T23:41:02",
+  "onboarded": false,
+  "onboarding_source": ""
+}
