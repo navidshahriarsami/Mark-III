@@ -5,6 +5,17 @@ Format: `[Version] — Date — Summary`
 
 ---
 
+## [0.20.1] — 2026-06-30 — Action System Fixes from Live Testing
+
+**Type:** Bug fix
+
+- Fixed LAUNCH_APP regex lazy quantifier silently truncating multi-word app names ("visual studio code" → "visual"); changed to greedy, safe because downstream stop-word filtering already handles trailing "app"/"application"/"for me"
+- Added app_aliases.py: fuzzy-resolves mis-transcribed app names ("node pad", "nodepad", "note pad" → "notepad") via difflib, cutoff calibrated against real Whisper mis-transcriptions
+- Fixed notification_executor.py: no Windows-native fallback existed when plyer/win10toast weren't installed — added a PowerShell System.Windows.Forms.NotifyIcon balloon-tip fallback that requires no pip dependency
+- All fixes verified against the exact phrases that failed in live voice testing, not synthetic test cases
+
+---
+
 ## [0.20.0] — 2026-06-30 — Universal Action System
 
 **Type:** Major feature

@@ -31,6 +31,7 @@ import time
 from typing import Optional
 
 from app.services.actions.base_action import Action, ActionResult, ActionType
+from app.services.actions.app_aliases import resolve_app_name
 
 logger = logging.getLogger(__name__)
 
@@ -113,27 +114,40 @@ class DesktopExecutor(BaseExecutor):
     # ------------------------------------------------------------------
 
     def _launch_app(self, app_name: str, path: Optional[str] = None) -> ActionResult:
-        target = path or app_name
+        # Fuzzy-correct mis-transcribed app names ("node pad" -> "notepad")
+        # before attempting resolution. Falls through unchanged if no
+        # confident match — never blocks launching an unrecognized app.
+        resolved_name = resolve_app_name(app_name) if not path else app_name
+        target = path or resolved_name
         try:
             if _PLATFORM == "Windows":
                 if path and os.path.exists(path):
                     os.startfile(path)
                 else:
                     # Try to resolve via where/which first
-                    resolved = shutil.which(app_name) or shutil.which(app_name.replace(" ", ""))
+                    resolved = (
+                        shutil.which(resolved_name)
+                        or shutil.which(resolved_name.replace(" ", ""))
+                        or shutil.which(app_name)
+                        or shutil.which(app_name.replace(" ", ""))
+                    )
                     if resolved:
                         subprocess.Popen([resolved], shell=False)
                     else:
-                        os.startfile(app_name)   # fallback — may work for registered apps
+                        os.startfile(resolved_name)   # fallback — may work for registered apps
             elif _PLATFORM == "Darwin":
-                subprocess.Popen(["open", "-a", app_name])
+                subprocess.Popen(["open", "-a", resolved_name])
             else:
-                resolved = shutil.which(app_name.lower().replace(" ", "-")) or shutil.which(app_name.lower())
+                resolved = (
+                    shutil.which(resolved_name.lower().replace(" ", "-"))
+                    or shutil.which(resolved_name.lower())
+                )
                 if resolved:
                     subprocess.Popen([resolved])
                 else:
                     subprocess.Popen(["xdg-open", target])
-            return ActionResult(success=True, output=f"Launched '{app_name}'")
+            launched_as = f" (as '{resolved_name}')" if resolved_name != app_name else ""
+            return ActionResult(success=True, output=f"Launched '{app_name}'{launched_as}")
         except Exception as exc:
             return ActionResult(success=False, error=f"Could not launch '{app_name}': {exc}")
 
@@ -159,12 +173,13 @@ class DesktopExecutor(BaseExecutor):
                 except Exception as exc:
                     return ActionResult(success=False, error=str(exc))
 
+        resolved_name = resolve_app_name(app_name)
         if _PLATFORM == "Windows":
-            result = subprocess.run(["taskkill", "/F", "/IM", f"{app_name}.exe"], capture_output=True)
+            result = subprocess.run(["taskkill", "/F", "/IM", f"{resolved_name}.exe"], capture_output=True)
             if result.returncode == 0:
                 return ActionResult(success=True, output=f"Killed '{app_name}'")
         elif _PLATFORM == "Darwin":
-            result = subprocess.run(["osascript", "-e", f'quit app "{app_name}"'], capture_output=True)
+            result = subprocess.run(["osascript", "-e", f'quit app "{resolved_name}"'], capture_output=True)
             if result.returncode == 0:
                 return ActionResult(success=True, output=f"Quit '{app_name}'")
         else:

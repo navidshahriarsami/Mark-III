@@ -46,6 +46,11 @@ except ImportError:
     _WIN10TOAST_AVAILABLE = False
 
 
+def _ps_escape(s: str) -> str:
+    """Escape a string for safe interpolation inside a single-quoted PowerShell literal."""
+    return s.replace("'", "''")
+
+
 class NotificationExecutor:
 
     async def run(self, action: Action) -> ActionResult:
@@ -114,6 +119,33 @@ class NotificationExecutor:
             except Exception as exc:
                 channels_tried.append("win10toast")
                 errors.append(f"win10toast: {exc}")
+
+        # 2b. Windows native fallback — System.Windows.Forms.NotifyIcon balloon tip.
+        # Built into every Windows install (no pip dependency), unlike plyer/win10toast.
+        if _PLATFORM == "Windows":
+            try:
+                ps_script = (
+                    "Add-Type -AssemblyName System.Windows.Forms,System.Drawing; "
+                    "$n = New-Object System.Windows.Forms.NotifyIcon; "
+                    "$n.Icon = [System.Drawing.SystemIcons]::Information; "
+                    "$n.Visible = $true; "
+                    f"$n.ShowBalloonTip(8000, '{_ps_escape(title)}', '{_ps_escape(body)}', "
+                    "[System.Windows.Forms.ToolTipIcon]::Info); "
+                    "Start-Sleep -Seconds 1; "
+                    "$n.Dispose()"
+                )
+                subprocess.run(
+                    ["powershell", "-NoProfile", "-Command", ps_script],
+                    check=True, capture_output=True, timeout=8,
+                )
+                return ActionResult(
+                    success  = True,
+                    output   = f"Notification sent: {title}",
+                    metadata = {"channel": "powershell_balloon"},
+                )
+            except Exception as exc:
+                channels_tried.append("powershell_balloon")
+                errors.append(f"powershell_balloon: {exc}")
 
         # 3. macOS osascript
         if _PLATFORM == "Darwin":

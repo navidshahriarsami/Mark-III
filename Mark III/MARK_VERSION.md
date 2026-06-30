@@ -9,7 +9,7 @@ Every new Claude session must read this file first.
 
 | Field | Value |
 |---|---|
-| **Software Version** | 0.20.0 |
+| **Software Version** | 0.20.1 |
 | **Architecture Version** | 3.1 (Governed Knowledge + Universal Actions) |
 | **Current Phase** | Phase 17 — Universal Action System |
 | **Current Milestone** | Voice-triggered actions with tiered, capability-based approval |

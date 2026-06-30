@@ -81,7 +81,7 @@ PATTERNS: list[IntentPattern] = [
     IntentPattern(
         ActionType.LAUNCH_APP,
         _p(
-            r"\bopen\s+(?P<app_name>[A-Za-z0-9 ._-]{2,40}?)(?:\s+(?:app|application|program|for me))?\b",
+            r"\bopen\s+(?P<app_name>[A-Za-z0-9 ._-]{2,40})(?:\s+(?:app|application|program|for me))?\b",
             r"\blaunch\s+(?P<app_name>[A-Za-z0-9 ._-]{2,40})",
             r"\bstart\s+(?P<app_name>[A-Za-z0-9 ._-]{2,40})",
             r"\brun\s+(?P<app_name>[A-Za-z0-9 ._-]{2,40})",

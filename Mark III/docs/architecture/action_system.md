@@ -100,6 +100,33 @@ Productivity-state rules (focus blocks, meeting detection) default to
 activity-tracking tables yet. All productivity-gated rules already handle this
 gracefully (they simply don't fire).
 
+## App Name Fuzzy Resolution
+
+Live voice testing surfaced Whisper mis-transcribing "notepad" three different
+ways across consecutive utterances — "node pad", "nodepad", "note pad" — each
+of which failed to launch. Worse, "node pair" silently resolved to the real
+`node` binary on PATH (Node.js REPL) instead of failing loudly, since the
+LAUNCH_APP regex's lazy quantifier was *also* truncating "node pair" down to
+just "node" before fuzzy correction ever had a chance to run.
+
+Two fixes, found only through end-to-end voice testing rather than unit tests:
+
+1. **Router regex fix.** The "open X" pattern in `action_router.py` used a lazy
+   quantifier (`{2,40}?`) that matched the shortest possible app name —
+   silently truncating every multi-word app ("visual studio code" → "visual").
+   Changed to greedy (`{2,40}`); the existing downstream stop-word filter
+   (`_clean_app_name`) already strips trailing "app"/"application"/"for me",
+   so the fix is safe in both directions.
+2. **`app_aliases.py`.** `resolve_app_name()` fuzzy-matches the (now correctly
+   captured) app name against a curated list of common apps using
+   `difflib.get_close_matches`, cutoff calibrated against the real failures
+   (0.65 — catches "node pad"/"nodepad"/"note pad" → "notepad" at 0.67–1.0
+   similarity, while staying below false-positive risks like "word"/"discord"
+   at 0.55). `node` is deliberately excluded from the known-apps list — it's
+   a real PATH binary that would otherwise out-compete `notepad` for garbled
+   transcriptions. Unknown app names fall through unchanged; this never blocks
+   launching an arbitrary or uninstalled app.
+
 ## Out of Scope (Phase 17)
 
 The Phase 13 proactive Agent System (`app/services/agents/` — morning/evening/weekly/
