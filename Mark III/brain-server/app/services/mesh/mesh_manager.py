@@ -58,6 +58,8 @@ _DESKTOP_CAPABILITIES = [
     Capability.DISPLAY.value,
     Capability.AUTOMATION.value,
     Capability.VOICE.value,
+    Capability.ACTIONS.value,
+    Capability.APPROVAL_AUTHORITY.value,   # Desktop is the only trusted approver until iOS ships
 ]
 
 

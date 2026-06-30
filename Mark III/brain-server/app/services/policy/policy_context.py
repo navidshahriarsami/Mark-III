@@ -81,36 +81,42 @@ class DeviceContext:
     target_device_type: Optional[str]
 
     @classmethod
-    def from_presence(
+    def from_mesh(
         cls,
-        presence_manager,
         target_device_id: Optional[str] = None,
     ) -> "DeviceContext":
-        alive  = presence_manager.list_alive()
-        types  = frozenset(d.device_type for d in alive)
+        """Build from the live mesh device registry (mesh_manager.py)."""
+        try:
+            from app.services.mesh.mesh_manager import get_mesh_manager
+            online = get_mesh_manager().get_online_devices()
+        except Exception:
+            online = []
 
-        # Audio output preference: earbuds > desktop > mobile
-        if "earbud" in types:
-            audio_out = "earbud"
+        # Mesh device.type values: desktop | macbook | iphone | watch | esp32 | radar | glasses
+        types = frozenset(d.type for d in online)
+        mobile_types = {"iphone", "macbook", "watch"}
+
+        if "glasses" in types:
+            audio_out = "glasses"
+        elif types & mobile_types:
+            audio_out = "mobile"
         elif "desktop" in types:
             audio_out = "desktop"
-        elif "mobile" in types:
-            audio_out = "mobile"
         else:
             audio_out = "none"
 
         target_type = None
         if target_device_id:
-            dev = presence_manager.get_device(target_device_id)
-            if dev:
-                target_type = dev.device_type
+            match = next((d for d in online if d.device_id == target_device_id), None)
+            if match:
+                target_type = match.type
 
         return cls(
             connected_types      = types,
-            has_earbuds          = "earbud" in types,
+            has_earbuds          = False,   # not modeled as a distinct mesh device type
             has_glasses          = "glasses" in types,
             has_desktop          = "desktop" in types,
-            has_mobile           = "mobile" in types,
+            has_mobile           = bool(types & mobile_types),
             preferred_audio_output = audio_out,
             target_device_id     = target_device_id,
             target_device_type   = target_type,
@@ -173,11 +179,14 @@ class UserPreferences:
     preferred_voice:   str        = "earbud"     # earbud | desktop | mobile
 
     @classmethod
-    def from_profile(cls, profile) -> "UserPreferences":
-        """Load from UserProfile DB row (or return defaults)."""
-        if not profile:
+    def from_live_profile(cls) -> "UserPreferences":
+        """Load from the live UserProfile (app.services.identity), or return defaults."""
+        try:
+            from app.services.identity.identity_manager import get_profile
+            profile = get_profile()
+            meta = getattr(profile, "metadata", None) or {}
+        except Exception:
             return cls()
-        meta = profile.metadata or {}
         return cls(
             quiet_hours_start            = meta.get("quiet_hours_start", 22),
             quiet_hours_end              = meta.get("quiet_hours_end",   7),
@@ -187,7 +196,7 @@ class UserPreferences:
             require_approval_for_caution = meta.get("require_approval_for_caution", False),
             auto_deny_dangerous_at_night = meta.get("auto_deny_dangerous_at_night", True),
             timezone                     = meta.get("timezone", "UTC"),
-            preferred_voice              = meta.get("preferred_voice", "earbud"),
+            preferred_voice              = meta.get("preferred_voice", "desktop"),
         )
 
     @classmethod
@@ -261,82 +270,24 @@ async def build_policy_context(
     device_id:     str,
     source:        str = "api",
     session_overrides: frozenset[str] | None = None,
-    db=None,
 ) -> PolicyContext:
     """
-    Assemble a PolicyContext by reading live state from DB and PresenceManager.
+    Assemble a PolicyContext from live mesh + identity state.
 
-    This is the ONLY place DB/async calls happen for policy evaluation.
-    Rules themselves are pure synchronous functions.
+    Reads the mesh device registry (mesh_manager.py) and the identity
+    profile (identity_manager.py) — both synchronous singletons in the
+    live architecture. No DB session required.
+
+    Productivity state has no live equivalent yet (the dormant UserContext/
+    DailyReport tracking was never wired up) — defaults to .unknown(),
+    which all productivity-gated rules already handle gracefully.
     """
-    from app.services.voice.presence_manager import get_presence_manager
-
-    presence = get_presence_manager()
     target_device = parameters.get("target_device_id") or parameters.get("device_id")
 
-    # Time
-    time_ctx = TimeContext.now()
-
-    # Devices
-    device_ctx = DeviceContext.from_presence(presence, target_device)
-
-    # Productivity state
-    productivity_ctx = ProductivityContext.unknown()
-    profile_row      = None
-    if db is not None:
-        try:
-            from sqlalchemy import select, desc
-            from app.models.db import UserContext, DailyReport, UserProfile
-
-            uc = (await db.execute(
-                select(UserContext)
-                .where(UserContext.device_id == device_id)
-                .order_by(desc(UserContext.ts))
-                .limit(1)
-            )).scalar_one_or_none()
-
-            if uc:
-                meeting_apps = {"zoom", "teams", "meet", "webex", "skype", "discord"}
-                in_meeting   = any(m in (uc.dominant_app or "").lower() for m in meeting_apps)
-                productivity_ctx = ProductivityContext(
-                    state              = uc.productivity_state or "unknown",
-                    is_work_block      = bool(uc.is_work_block),
-                    in_meeting         = in_meeting,
-                    dominant_app       = uc.dominant_app or "",
-                    dominant_class     = uc.dominant_classification or "",
-                    focus_score        = 0.0,
-                    distraction_minutes = 0.0,
-                )
-
-                # Enrich with today's daily report
-                dr = (await db.execute(
-                    select(DailyReport)
-                    .where(DailyReport.device_id == device_id)
-                    .where(DailyReport.date == time_ctx.date_str)
-                    .order_by(desc(DailyReport.generated_at))
-                    .limit(1)
-                )).scalar_one_or_none()
-                if dr:
-                    productivity_ctx = ProductivityContext(
-                        state               = productivity_ctx.state,
-                        is_work_block       = productivity_ctx.is_work_block,
-                        in_meeting          = productivity_ctx.in_meeting,
-                        dominant_app        = productivity_ctx.dominant_app,
-                        dominant_class      = productivity_ctx.dominant_class,
-                        focus_score         = dr.focus_score or 0.0,
-                        distraction_minutes = dr.distraction_minutes or 0.0,
-                    )
-
-            profile_row = (await db.execute(
-                select(UserProfile).where(UserProfile.device_id == device_id)
-            )).scalar_one_or_none()
-
-        except Exception:
-            pass  # graceful degrade — use unknowns
-
-    prefs = UserPreferences.from_profile(profile_row)
-    # Re-derive time context with user's work hours
-    time_ctx = TimeContext.now(prefs.work_start, prefs.work_end)
+    device_ctx        = DeviceContext.from_mesh(target_device)
+    productivity_ctx  = ProductivityContext.unknown()
+    prefs             = UserPreferences.from_live_profile()
+    time_ctx          = TimeContext.now(prefs.work_start, prefs.work_end)
 
     return PolicyContext(
         action_type       = action_type,

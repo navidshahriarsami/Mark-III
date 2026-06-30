@@ -19,13 +19,13 @@ Up to MAX_CONCURRENT actions execute simultaneously.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from typing import Any, Optional
 
 from app.services.actions.base_action import Action, ActionRequest, ActionResult, ActionState
 from app.services.actions.action_registry import lookup_required, validate_params, get_executor
+from app.services.actions.action_store import get_action_store
 from app.services.actions.approval_manager import get_approval_manager, APPROVAL_TIMEOUT_SECONDS
 from app.services.policy.policy_engine import evaluate_action
 from app.services.policy.policy_rules import Verdict
@@ -49,7 +49,7 @@ class AsyncActionQueue:
         self._sem:      asyncio.Semaphore             = asyncio.Semaphore(MAX_CONCURRENT)
         self._worker_task:  Optional[asyncio.Task]    = None
         self._defer_task:   Optional[asyncio.Task]    = None
-        self._db_factory    = None   # injected by main.py via set_db_factory()
+        self._store         = get_action_store()
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -69,10 +69,6 @@ class AsyncActionQueue:
                 except asyncio.CancelledError:
                     pass
         logger.info("Action Queue stopped")
-
-    def set_db_factory(self, factory) -> None:
-        """Inject the async DB session factory from main.py lifespan."""
-        self._db_factory = factory
 
     # ------------------------------------------------------------------
     # Submit
@@ -162,16 +158,14 @@ class AsyncActionQueue:
 
         # ── 1. Policy evaluation ────────────────────────────────────────
         try:
-            async with self._db_ctx() as db:
-                decision = await evaluate_action(
-                    action_type       = action.action_type,
-                    safety_level      = action.safety_level,
-                    parameters        = action.parameters,
-                    device_id         = action.device_id,
-                    source            = action.source,
-                    session_overrides = overrides,
-                    db                = db,
-                )
+            decision = await evaluate_action(
+                action_type       = action.action_type,
+                safety_level      = action.safety_level,
+                parameters        = action.parameters,
+                device_id         = action.device_id,
+                source            = action.source,
+                session_overrides = overrides,
+            )
         except Exception as exc:
             logger.error("Policy evaluation failed for %s: %s", action.id[:8], exc)
             decision = None   # fail open — continue (policy errors should not block safe actions)
@@ -226,8 +220,10 @@ class AsyncActionQueue:
             action.approval_id = approval.approval_id
             await self._persist(action)
 
-            # Notify via TTS if voice session active
-            await self._voice_notify(action.device_id, approval.prompt)
+            # NOTE: the approval prompt itself is delivered as the synchronous
+            # spoken response to the triggering voice command (see action_loop.py
+            # submit_action_threadsafe + always_listening_loop.py integration) —
+            # no async push is needed here.
 
             # Block until user responds or timeout
             user_verdict = await approval_mgr.wait_for_response(
@@ -307,90 +303,14 @@ class AsyncActionQueue:
                 await asyncio.sleep(_DEFER_RETRY_INTERVAL)
 
     # ------------------------------------------------------------------
-    # Voice notification helper
-    # ------------------------------------------------------------------
-
-    async def _voice_notify(self, device_id: str, prompt: str) -> None:
-        """Speak the approval prompt if a voice session is active for this device."""
-        try:
-            from app.services.voice.voice_daemon import get_voice_daemon
-            daemon = get_voice_daemon()
-            if daemon.is_active_for(device_id):
-                await daemon.speak(device_id, prompt)
-        except Exception as exc:
-            logger.debug("Voice notify for approval failed (non-fatal): %s", exc)
-
-    # ------------------------------------------------------------------
-    # DB persistence
+    # Persistence (SQLite via action_store.py)
     # ------------------------------------------------------------------
 
     async def _persist(self, action: Action) -> None:
-        if not self._db_factory:
-            return
         try:
-            async with self._db_factory() as db:
-                await self._upsert_action(db, action)
-                await db.commit()
+            await asyncio.to_thread(self._store.upsert, action)
         except Exception as exc:
             logger.error("Failed to persist action %s: %s", action.id[:8], exc)
-
-    async def _upsert_action(self, db, action: Action) -> None:
-        from sqlalchemy import select
-        from app.models.db import ActionRecord
-
-        result_json   = json.dumps(action.result.to_dict()) if action.result else None
-        params_json   = action.params_to_json(action.parameters)
-
-        existing = (await db.execute(
-            select(ActionRecord).where(ActionRecord.id == action.id)
-        )).scalar_one_or_none()
-
-        if existing:
-            existing.state          = action.state
-            existing.updated_at     = action.updated_at
-            existing.started_at     = action.started_at
-            existing.completed_at   = action.completed_at
-            existing.result_json    = result_json
-            existing.error_message  = action.error_message
-            existing.retry_count    = action.retry_count
-            existing.approval_id    = action.approval_id
-            existing.deferred_until = action.deferred_until
-        else:
-            db.add(ActionRecord(
-                id              = action.id,
-                action_type     = action.action_type,
-                safety_level    = action.safety_level,
-                parameters_json = params_json,
-                state           = action.state,
-                source          = action.source,
-                device_id       = action.device_id,
-                session_id      = action.session_id,
-                context_hint    = action.context_hint[:200] if action.context_hint else "",
-                result_json     = result_json,
-                error_message   = action.error_message,
-                retry_count     = action.retry_count,
-                max_retries     = action.max_retries,
-                timeout_seconds = action.timeout_seconds,
-                approval_id     = action.approval_id,
-                deferred_until  = action.deferred_until,
-                created_at      = action.created_at,
-                updated_at      = action.updated_at,
-                started_at      = action.started_at,
-                completed_at    = action.completed_at,
-            ))
-
-    # ------------------------------------------------------------------
-    # DB context helper
-    # ------------------------------------------------------------------
-
-    class _NullCtx:
-        async def __aenter__(self): return None
-        async def __aexit__(self, *a): pass
-
-    def _db_ctx(self):
-        if self._db_factory:
-            return self._db_factory()
-        return self._NullCtx()
 
     # ------------------------------------------------------------------
     # Internal

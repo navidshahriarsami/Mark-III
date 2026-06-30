@@ -47,6 +47,7 @@ class PendingApproval:
     prompt:       str
     requested_at: float
     _event:       asyncio.Event
+    safety_level: str             = "dangerous"
     verdict:      Optional[str] = None  # "approved" | "denied"
     responded_at: Optional[float] = None
     responded_by: Optional[str]   = None  # mobile | voice | api
@@ -78,6 +79,28 @@ def build_approval_prompt(action_type: str, parameters: dict, safety_level: str)
     action_str = fn(parameters) if fn else f"perform '{action_type}'"
     level_tag = f" [{safety_level.upper()}]" if safety_level in ("dangerous", "critical") else ""
     return f"MARK III wants to {action_str}.{level_tag} Allow?"
+
+
+def _is_trusted_approver(device_id: str) -> bool:
+    """
+    Capability-based trust check (Tiered Approval Framework).
+
+    A device may resolve CRITICAL-tier approvals only if it carries the
+    'approval_authority' capability in the live mesh registry. Today only
+    the Desktop registers this capability. When MARK Mobile iOS ships, it
+    registers the same capability and becomes a trusted approver with no
+    change to this function or to the Policy Engine.
+    """
+    try:
+        from app.services.mesh.mesh_manager import get_mesh_manager
+        from app.services.mesh.mesh_protocol import Capability
+        device = next(
+            (d for d in get_mesh_manager().get_all_devices() if d.device_id == device_id),
+            None,
+        )
+        return bool(device and Capability.APPROVAL_AUTHORITY.value in device.capabilities)
+    except Exception:
+        return False
 
 
 def _short_path(path: str) -> str:
@@ -126,6 +149,7 @@ class ApprovalManager:
             prompt       = prompt,
             requested_at = time.time(),
             _event       = asyncio.Event(),
+            safety_level = safety_level,
         )
         self._pending[approval_id]   = record
         self._by_action[action_id]   = approval_id
@@ -168,12 +192,19 @@ class ApprovalManager:
         """
         Record the user's response and unblock the waiting queue worker.
         Returns True if the approval was found and updated.
+
+        record._event is an asyncio.Event bound to the action loop's event
+        loop (a dedicated background thread). This method is routinely
+        called from OTHER threads (the synchronous voice loop) — setting
+        the event directly from there is not safe. We schedule the .set()
+        call onto the owning loop via action_loop.schedule_threadsafe().
         """
         if not self._resolve(approval_id, verdict, responded_by):
             return False
         record = self._pending.get(approval_id)
         if record:
-            record._event.set()
+            from app.services.actions import action_loop
+            action_loop.schedule_threadsafe(record._event.set)
         return True
 
     def respond_by_action(
@@ -192,6 +223,12 @@ class ApprovalManager:
         """
         Parse "yes" / "no" from voice transcript and resolve pending approval
         for this device (if any).
+
+        Tiered Approval Framework: CRITICAL-tier approvals may only be resolved
+        by a device carrying the 'approval_authority' capability (today: Desktop
+        only; future trusted approvers register the same capability with zero
+        changes here). DANGEROUS-tier approvals remain resolvable by any device
+        that triggered them, consistent with existing session-override behavior.
         """
         text = text.lower().strip()
         if any(w in text for w in ("yes", "yeah", "yep", "allow", "approve", "confirm", "do it", "go ahead")):
@@ -210,6 +247,13 @@ class ApprovalManager:
                 latest    = rec.requested_at
 
         if not candidate:
+            return False
+
+        if candidate.safety_level == "critical" and not _is_trusted_approver(device_id):
+            logger.warning(
+                "Voice response from untrusted device %s ignored for CRITICAL approval %s",
+                device_id[:16], candidate.approval_id[:8],
+            )
             return False
 
         return self.respond(candidate.approval_id, verdict, "voice")

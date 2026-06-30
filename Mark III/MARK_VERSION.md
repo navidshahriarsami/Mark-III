@@ -9,10 +9,10 @@ Every new Claude session must read this file first.
 
 | Field | Value |
 |---|---|
-| **Software Version** | 0.19.0 |
-| **Architecture Version** | 3.0 (Governed Knowledge) |
-| **Current Phase** | Phase Constitution — Knowledge Governance System |
-| **Current Milestone** | MARK III Constitution + Authoritative Memory Engine |
+| **Software Version** | 0.20.0 |
+| **Architecture Version** | 3.1 (Governed Knowledge + Universal Actions) |
+| **Current Phase** | Phase 17 — Universal Action System |
+| **Current Milestone** | Voice-triggered actions with tiered, capability-based approval |
 | **Last Updated** | 2026-06-30 |
 
 ---
@@ -34,6 +34,9 @@ Every new Claude session must read this file first.
 | 18+ | ChromaDB + Intent Classifier + Context Builder | ✅ Complete |
 | 18+ | Obsidian Knowledge Bridge | ✅ Complete |
 | Identity | User Profile + Learning Engine + Session Summarizer | ✅ Complete |
+| Memory | Authoritative Recall Engine — structured fact store | ✅ Complete |
+| Constitution | Knowledge Governance System + CLAUDE.md | ✅ Complete |
+| 17 | Universal Action System — voice-triggered actions, tiered approval | ✅ Complete |
 
 ---
 
@@ -41,10 +44,9 @@ Every new Claude session must read this file first.
 
 | Phase | Name | Status |
 |---|---|---|
-| Architecture Freeze | Documentation + ADR + Roadmap | 🔄 In Progress |
 | 16B-iOS | MARK Mobile — Native Swift iOS App | 🔵 Next |
-| 17 | Universal Actions (desktop automation) | 📋 Planned |
 | 17A | MARK Connect (self-hosted relay, replaces Tailscale) | 📋 Planned |
+| 13-Integration | Proactive Agent System — integration path undecided | 📋 Deferred |
 
 ---
 
@@ -56,6 +58,7 @@ Every new Claude session must read this file first.
 | 0.15D | Always-on mode — wake word removed from primary pipeline |
 | 0.15C | Qwen replaces OpenRouter as primary conversation model |
 | 0.18.0 | Integration Manager — LLM no longer answers factual queries |
+| 0.20.0 | Universal Action System live — voice can now execute, not just answer. CRITICAL actions require desktop-only approval (capability-gated, not hardcoded) |
 
 ---
 

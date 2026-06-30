@@ -297,6 +297,14 @@ class MarkService:
         except Exception as e:
             log.warning("Mesh Manager failed to start: %s", e)
 
+        # Phase 17: Universal Action System — background asyncio action loop
+        try:
+            from app.services.actions import action_loop
+            action_loop.start()
+            log.info("Action Loop started")
+        except Exception as e:
+            log.warning("Action Loop failed to start: %s", e)
+
         from app.services.voice.always_listening_loop import AlwaysListeningLoop
         self._loop = AlwaysListeningLoop(
             on_state_change  = self._on_state_change,

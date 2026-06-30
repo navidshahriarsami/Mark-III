@@ -53,6 +53,8 @@ class Capability(str, Enum):
     AUTOMATION    = "automation"
     ACTIONS       = "actions"
     VOICE         = "voice"
+    # Governance
+    APPROVAL_AUTHORITY = "approval_authority"   # may resolve CRITICAL-tier action approvals
 
 
 # ─────────────────────────────────────────────────────────────────

@@ -439,6 +439,65 @@ def _start_council_loop() -> None:
     _council_loop.run_forever()
 
 
+def _try_approval_response(text: str, device_id: str) -> bool:
+    """
+    If a pending action approval exists for this device, attempt to resolve
+    it from this utterance's yes/no content.
+
+    Must run BEFORE social reflex — reflex_router already matches bare
+    "yes"/"no" as a conversational acknowledgment, which would otherwise
+    swallow the utterance before an approval ever sees it.
+
+    Returns True if this utterance was consumed as an approval response
+    (caller should stop processing this turn as a normal query).
+    """
+    try:
+        from app.services.actions.approval_manager import get_approval_manager
+        mgr = get_approval_manager()
+        if not mgr.pending_for_device(device_id):
+            return False
+        return mgr.handle_voice_response(device_id, text)
+    except Exception as e:
+        log.debug("Approval response check error: %s", e)
+        return False
+
+
+def _execute_action_and_speak(request) -> Optional[str]:
+    """
+    Submit an ActionRequest to the Universal Action System and build a spoken
+    response from the resulting state.
+
+    Returns None on any failure so the caller falls back to the normal
+    reflex/Integration Manager/Qwen pipeline (safe degrade — never silently
+    swallow a query just because the action system hiccuped).
+    """
+    try:
+        from app.services.actions import action_loop as _action_loop
+        from app.services.actions.base_action import ActionState
+        from app.services.actions.approval_manager import get_approval_manager
+
+        action = _action_loop.submit_action_sync(request, timeout=10.0)
+
+        if action.state == ActionState.AWAITING_APPROVAL.value:
+            approval = get_approval_manager().get(action.approval_id) if action.approval_id else None
+            return approval.prompt if approval else "This action needs your approval. Allow?"
+
+        if action.state == ActionState.COMPLETED.value:
+            out = (action.result.output if action.result else None) or "Done."
+            return str(out)[:160]
+
+        if action.state == ActionState.FAILED.value:
+            return f"Couldn't do that — {action.error_message or 'unknown error'}"[:160]
+
+        if action.state == ActionState.DEFERRED.value:
+            return "Queued for your next work session."
+
+        return "Still working on it."
+    except Exception as e:
+        log.debug("Action execution error: %s", e)
+        return None
+
+
 def query_council(text: str) -> str:
     """
     Phase 18+ — Retrieval-first cognitive pipeline.
@@ -468,6 +527,20 @@ def query_council(text: str) -> str:
                 return _rf.answer
     except Exception as _re:
         log.debug("Recall engine error: %s", _re)
+
+    # ── 0b. Universal Action System — "open X", "delete Y", "run Z" ─────
+    try:
+        from app.services.actions.action_router import classify_intent as _classify_action
+        from app.services.actions import action_loop as _action_loop
+        if _action_loop.is_running():
+            _device_id = get_active_voice_device()
+            _req = _classify_action(text, device_id=_device_id, source="voice")
+            if _req is not None:
+                _spoken = _execute_action_and_speak(_req)
+                if _spoken is not None:
+                    return _spoken
+    except Exception as _ae:
+        log.debug("Action router error: %s", _ae)
 
     # ── 1. Integration Manager — live factual data ──────────────────────
     try:
@@ -1268,6 +1341,14 @@ class AlwaysListeningLoop:
             self._set_state(ServiceState.WAIT_FOR_SPEECH)
             return
 
+        # ── 3d. Pending action approval — must run before social reflex ──
+        if _try_approval_response(text, get_active_voice_device()):
+            log.info("Approval resolved via voice: %r", text[:40])
+            if _desktop_speaks:
+                self._say_quick("Confirmed.")
+            self._set_state(ServiceState.WAIT_FOR_SPEECH)
+            return
+
         # ── 4a. Social reflex (hello, thanks, yes/no, wake word) ─────────
         from app.services.voice.reflex_router import match as _social_match
         _reflex = _social_match(text)
@@ -1470,6 +1551,13 @@ class AlwaysListeningLoop:
         ds.stt_latency_ms  = (time.monotonic() - t_stt) * 1000
         ds.utterance_chars = len(text)
         log.info("Utterance: %r", text[:80])
+
+        # ── 2a. Pending action approval — must run before social reflex ──
+        if _try_approval_response(text, get_active_voice_device()):
+            log.info("Approval resolved via voice: %r", text[:40])
+            self._say_quick("Confirmed.")
+            self._set_state(ServiceState.IDLE)
+            return
 
         # ── 3a. Reflex check (BEFORE noise filter) ────────────────────
         # Reflex handles short valid phrases ("Hello?", "Thanks", "Yes")

@@ -1,6 +1,6 @@
 # MARK III — System Manifest
 
-**Version:** 0.18.1 | **Phase:** Identity Engine + Architecture Freeze | **Updated:** 2026-06-30
+**Version:** 0.20.0 | **Phase:** Universal Action System | **Updated:** 2026-06-30
 
 > This is the master index. Every subsystem is documented here.
 > The authoritative version lives at the repository root.
@@ -20,6 +20,7 @@
 | Memory architecture | [docs/architecture/memory_architecture.md](docs/architecture/memory_architecture.md) |
 | Identity engine | [docs/architecture/identity_engine.md](docs/architecture/identity_engine.md) |
 | Knowledge engine | [docs/architecture/knowledge_engine.md](docs/architecture/knowledge_engine.md) |
+| Universal Action System | [docs/architecture/action_system.md](docs/architecture/action_system.md) |
 | All ADRs | [docs/adr/](docs/adr/) |
 | Mesh API | [docs/api/mesh_api.md](docs/api/mesh_api.md) |
 | Completed phases | [docs/roadmap/completed_phases.md](docs/roadmap/completed_phases.md) |
@@ -42,25 +43,32 @@ Mark III/
 ├── CHANGELOG.md            ← Release history
 ├── README.md               ← GitHub summary
 ├── docs/
-│   ├── architecture/       ← 6 architecture docs
-│   ├── adr/                ← ADR-0001 through ADR-0010
+│   ├── architecture/       ← 7 architecture docs
+│   ├── adr/                ← ADR-0001 through ADR-0012
 │   ├── roadmap/            ← Completed phases + future
 │   ├── knowledge/          ← Vision, principles, investor
 │   └── api/                ← Mesh API reference
 ├── brain-server/           ← Desktop brain (Python 3.11)
 │   ├── mark_service.py
 │   ├── requirements.txt
-│   ├── app/services/
-│   │   ├── voice/          ← STT, TTS, always-on loop
-│   │   ├── ai/             ← Qwen, OpenRouter, providers
-│   │   ├── council/        ← Multi-LLM reasoning
-│   │   ├── reflex/         ← 8 reflex modules
-│   │   ├── integrations/   ← Time, weather, system APIs
-│   │   ├── cognition/      ← Intent classifier, context builder
-│   │   ├── memory/         ← ChromaDB, SQLite vector store
-│   │   ├── knowledge/      ← Obsidian bridge, vault indexer
-│   │   ├── identity/       ← User profile, learning, goals
-│   │   └── mesh/           ← Device mesh, presence fusion
+│   ├── app/
+│   │   ├── api/            ← Superseded FastAPI routes (not run by mark_service.py)
+│   │   ├── models/         ← Superseded SQLAlchemy models (not run)
+│   │   └── services/
+│   │       ├── voice/          ← STT, TTS, always-on loop
+│   │       ├── ai/             ← Qwen, OpenRouter, providers
+│   │       ├── council/        ← Multi-LLM reasoning
+│   │       ├── reflex/         ← 8 reflex modules
+│   │       ├── integrations/   ← Time, weather, system APIs
+│   │       ├── cognition/      ← Intent classifier, context builder
+│   │       ├── memory/         ← ChromaDB, SQLite vector store, structured facts
+│   │       ├── knowledge/      ← Obsidian bridge, vault indexer
+│   │       ├── identity/       ← User profile, learning, goals
+│   │       ├── governance/     ← Knowledge Governance System
+│   │       ├── actions/        ← Universal Action System (live)
+│   │       ├── policy/         ← Policy Engine (live)
+│   │       ├── agents/         ← Proactive Agent System (dormant — deferred)
+│   │       └── mesh/           ← Device mesh, presence fusion
 │   └── user_profile.json   ← Owner identity (gitignored in production)
 ├── desktop-daemon/         ← Windows desktop daemon
 ├── shared/                 ← Cross-component scaffold (future)

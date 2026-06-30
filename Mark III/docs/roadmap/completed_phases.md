@@ -86,6 +86,18 @@
 - Obsidian Knowledge Bridge (vault indexer, markdown parser, 60s watch)
 - User Profile + Identity Engine (learning, activity tracking, session summarizer)
 
+## Phase 17 — Universal Action System
+**Completed:** 2026-06-30
+- Discovered dormant Phase 12A/12B/13 action/policy/agent engine, built for an async FastAPI backend `mark_service.py` never ran
+- Absorbed action engine into live sync architecture via dedicated background asyncio thread (`action_loop.py`)
+- SQLite persistence (`action_store.py`) replaces SQLAlchemy entirely
+- Live mesh + identity context replaces dormant `presence_manager.py` + SQLAlchemy queries
+- Voice-triggered actions: "open X", "delete Y", "restart the computer"
+- Tiered Approval Framework — capability-based (`Capability.APPROVAL_AUTHORITY`), not device-hardcoded
+- Fixed cross-thread `asyncio.Event` race in approval resolution
+- `app/api/v1/` and `app/models/db.py` marked superseded, not deleted
+- Phase 13 Agent System deferred — out of scope this phase
+
 ---
 
 [[future]] · [[system_overview]] · [[cognitive_pipeline]] · [[device_mesh]] · [[memory_architecture]] · [[identity_engine]] · [[MARK_VERSION]] · [[CHANGELOG]]

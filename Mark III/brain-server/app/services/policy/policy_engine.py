@@ -80,7 +80,6 @@ class PolicyEngine:
         device_id:     str,
         source:        str              = "api",
         session_overrides: frozenset[str] | None = None,
-        db=None,
     ) -> PolicyDecision:
         """
         Build a PolicyContext then evaluate rules in priority order.
@@ -95,7 +94,6 @@ class PolicyEngine:
             device_id         = device_id,
             source            = source,
             session_overrides = session_overrides,
-            db                = db,
         )
         return self._run_rules(ctx)
 
@@ -138,7 +136,6 @@ class PolicyEngine:
         actions:   list[dict],
         device_id: str,
         source:    str = "api",
-        db=None,
     ) -> list[PolicyDecision]:
         """
         Evaluate a list of proposed actions.  Each item must contain:
@@ -153,7 +150,6 @@ class PolicyEngine:
                 parameters   = action.get("parameters", {}),
                 device_id    = device_id,
                 source       = source,
-                db           = db,
             )
             results.append(decision)
         return results
@@ -231,14 +227,13 @@ async def evaluate_action(
     device_id:     str,
     source:        str              = "api",
     session_overrides: frozenset[str] | None = None,
-    db=None,
 ) -> PolicyDecision:
     """
     Module-level shortcut:
 
         from app.services.policy.policy_engine import evaluate_action, Verdict
 
-        decision = await evaluate_action("launch_app", "safe", {...}, device_id, db=db)
+        decision = await evaluate_action("launch_app", "safe", {...}, device_id)
         if decision.verdict != Verdict.ALLOW:
             ...
     """
@@ -249,7 +244,6 @@ async def evaluate_action(
         device_id         = device_id,
         source            = source,
         session_overrides = session_overrides,
-        db                = db,
     )
 
 

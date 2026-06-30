@@ -28,6 +28,17 @@ markiii_service.log
 mesh_devices.json
 mesh_diagnostics.json
 voice_diagnostics.json
+action_store.db
+structured_memory.db
+repo_observer_state.json
+repo_observer_events.json
+governance_lifecycle.json
+repository_diagnostics.json
+memory_consistency.json
+recall_diagnostics.json
+habit_data.json
+rf_events.json
+*.db-journal
 
 # Large model files (auto-downloaded on first run)
 Mark III/brain-server/app/services/voice/models/*.onnx

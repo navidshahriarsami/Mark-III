@@ -17,21 +17,21 @@
 - Free Apple ID allows device testing (app expires every 7 days)
 - Production requires $99/year Apple Developer account
 
-## Phase 17 — Universal Actions
+## Phase 17B — Proactive Agent System Integration
 
-**Objective:** MARK can DO things, not just talk.
+**Objective:** Decide the integration path for the dormant Phase 13 Agent System
+(morning/evening/weekly/productivity/goal/career agents, scheduler, 3-channel
+delivery) — same status Phase 17's action engine was in before ADR-0012.
 
-**Features:**
-- Open/close applications by voice
-- Take screenshots
-- Set system reminders
-- File operations (search, open)
-- Browser control (URL, tabs)
+**Open question:** absorb into the live sync architecture (same pattern as
+`action_loop.py`), or retire in favor of a new proactive-notification design
+built natively for the current identity/learning engine.
 
 **Technical:**
-- `app/services/actions/` scaffolding already exists
-- SudoApprovalModal in future iOS app for high-stakes actions
-- All actions logged as learned patterns in vector memory
+- `app/services/agents/` — fully built, zero live callers
+- Depends on `voice_daemon.py` and the same dormant SQLAlchemy stack as the
+  pre-ADR-0012 action engine
+- `notification_executor.py` (now live, Phase 17) is a usable delivery channel
 
 ## Phase 17A — MARK Connect (Commercial Relay)
 

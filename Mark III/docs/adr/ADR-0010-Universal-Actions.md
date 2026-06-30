@@ -1,6 +1,6 @@
 # ADR-0010 — Universal Actions Architecture (Planned)
 
-**Status:** Planned — Phase 17
+**Status:** Superseded by [ADR-0012](ADR-0012-Universal-Action-System.md) — as-built differs from this plan
 **Date:** 2026-06-28
 
 ## Context
@@ -30,7 +30,10 @@ Action executors:
 
 ## Status
 
-Not yet implemented. Scaffolding exists in `app/services/actions/`. Implementation is Phase 17.
+Superseded. The scaffolding referenced here turned out to already be fully built
+(Phase 12A/12B/13, for a dormant FastAPI backend) rather than new work. See
+[ADR-0012](ADR-0012-Universal-Action-System.md) for what was actually integrated
+and why the plan below differs from the as-built system.
 
 ---
 

@@ -5,6 +5,24 @@ Format: `[Version] — Date — Summary`
 
 ---
 
+## [0.20.0] — 2026-06-30 — Universal Action System
+
+**Type:** Major feature
+
+- Discovered and absorbed dormant Phase 12A/12B/13 action/policy engine (built for an unused async FastAPI backend) into the live synchronous architecture
+- action_loop.py: dedicated background thread + event loop hosts the async AsyncActionQueue; voice loop bridges in via asyncio.run_coroutine_threadsafe
+- action_store.py: SQLite persistence (mirrors fact_store.py), replaces SQLAlchemy app.models.db.ActionRecord entirely
+- policy_context.py: reads live mesh device registry + live identity profile, replaces dormant presence_manager.py + SQLAlchemy UserContext/DailyReport
+- action_router.py wired into query_council() — "open Chrome", "delete X", "restart the computer" now execute via voice
+- Tiered Approval Framework: new Capability.APPROVAL_AUTHORITY mesh capability gates CRITICAL-tier approvals — capability-based, not device-hardcoded. Desktop only today; iOS registers the same capability when it ships, zero code changes required
+- Voice "yes"/"no" resolves pending approvals — intercepted before social reflex so it isn't swallowed as a generic acknowledgment
+- Fixed a real cross-thread asyncio.Event race: ApprovalManager.respond() was calling Event.set() directly from the voice thread, which doesn't safely wake a coroutine owned by a different thread's event loop. Caught only because of end-to-end integration testing with a real approval flow
+- app/api/v1/ and app/models/db.py marked superseded (not deleted) — explicit notices in __init__.py
+- ADR-0012 documents the as-built integration; ADR-0010 marked superseded
+- Phase 13 Agent System explicitly deferred — same dormant stack, not absorbed this phase
+
+---
+
 ## [0.19.0] — 2026-06-30 — MARK III Constitution + Knowledge Governance System
 
 **Type:** Constitutional milestone
