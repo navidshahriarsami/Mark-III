@@ -136,4 +136,4 @@ it remains dormant pending a dedicated phase to decide its integration path.
 
 ---
 
-[[device_mesh]] · [[cognitive_pipeline]] · [[memory_architecture]] · [[ADR-0012-Universal-Action-System]] · [[ADR-0010-Universal-Actions]] · [[ADR-0003-Device-Mesh]] · [[future]]
+[[device_mesh]] · [[cognitive_pipeline]] · [[memory_architecture]] · [[discovery_engine]] · [[ADR-0012-Universal-Action-System]] · [[ADR-0013-Discovery-Engine]] · [[ADR-0010-Universal-Actions]] · [[ADR-0003-Device-Mesh]] · [[future]]

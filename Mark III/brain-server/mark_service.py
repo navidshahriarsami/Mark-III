@@ -305,6 +305,14 @@ class MarkService:
         except Exception as e:
             log.warning("Action Loop failed to start: %s", e)
 
+        # Discovery Engine — background scan of installed apps + user files
+        try:
+            from app.services.discovery.discovery_scheduler import get_discovery_scheduler
+            get_discovery_scheduler().start()
+            log.info("Discovery Scheduler started")
+        except Exception as e:
+            log.warning("Discovery Scheduler failed to start: %s", e)
+
         from app.services.voice.always_listening_loop import AlwaysListeningLoop
         self._loop = AlwaysListeningLoop(
             on_state_change  = self._on_state_change,

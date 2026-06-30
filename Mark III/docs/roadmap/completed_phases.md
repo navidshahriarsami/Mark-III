@@ -98,6 +98,16 @@
 - `app/api/v1/` and `app/models/db.py` marked superseded, not deleted
 - Phase 13 Agent System deferred — out of scope this phase
 
+## Phase 17B — Discovery Engine
+**Completed:** 2026-06-30
+- Root cause of "open Slack" failure: `shutil.which()`/`os.startfile()` only check PATH and the Windows App Paths registry — most consumer apps register neither, only a Start Menu shortcut
+- `app_discovery.py`: PowerShell scan combining Start Menu shortcut resolution (zero pip dependency) + `Get-StartApps` (UWP/Store apps)
+- `file_discovery.py`: indexes Desktop/Documents/Downloads/Pictures/Videos/Music/OneDrive — 22,821 files in 4s, search now single-digit ms instead of a live `rglob()` walk per query
+- `discovery_store.py`: SQLite persistence, `fact_store.py` pattern
+- `discovery_scheduler.py`: background scan +10s after boot, rescans every 30min, manual trigger
+- `desktop_executor.py`/`file_executor.py` try the discovery index first, fall back to prior resolution unchanged
+- `GET /discovery/stats`, `POST /discovery/refresh` mesh endpoints
+
 ---
 
 [[future]] · [[system_overview]] · [[cognitive_pipeline]] · [[device_mesh]] · [[memory_architecture]] · [[identity_engine]] · [[MARK_VERSION]] · [[CHANGELOG]]

@@ -132,6 +132,33 @@ class FileExecutor:
     def _search_files(
         self, pattern: str, root_path: Optional[str], max_results: int
     ) -> ActionResult:
+        # No explicit root requested — query MARK's own background-built file
+        # index (discovery_engine.md) instead of walking the filesystem live.
+        # Indexed scope: Desktop/Documents/Downloads/Pictures/Videos/Music/
+        # OneDrive (see file_discovery.py _ROOT_SUBDIRS). Falls through to a
+        # live walk below if the index is empty (not yet scanned) or a
+        # specific root_path was given that's outside the indexed scope.
+        if not root_path:
+            try:
+                from app.services.discovery.discovery_store import get_discovery_store
+                store = get_discovery_store()
+                hits  = store.search_files(pattern, limit=max_results)
+                if hits:
+                    return ActionResult(
+                        success  = True,
+                        output   = [h["path"] for h in hits],
+                        metadata = {"count": len(hits), "source": "discovery_index", "pattern": pattern},
+                    )
+                if store.stats().get("files_indexed", 0) > 0:
+                    # Index is built and simply has no match — trust it, skip the slow walk.
+                    return ActionResult(
+                        success  = True,
+                        output   = [],
+                        metadata = {"count": 0, "source": "discovery_index", "pattern": pattern},
+                    )
+            except Exception:
+                pass   # index unavailable — fall through to live walk
+
         root = pathlib.Path(root_path) if root_path else pathlib.Path.home()
         if not root.exists():
             return ActionResult(success=False, error=f"Root path does not exist: {root}")
@@ -149,7 +176,7 @@ class FileExecutor:
         return ActionResult(
             success  = True,
             output   = matches,
-            metadata = {"count": len(matches), "root": str(root), "pattern": pattern},
+            metadata = {"count": len(matches), "source": "live_walk", "root": str(root), "pattern": pattern},
         )
 
     # ------------------------------------------------------------------

@@ -1,8 +1,21 @@
 """
 MARK III — App Alias Resolver
 
-Fuzzy-corrects mis-transcribed or mis-spoken app names against a curated list
-of common applications before the executor attempts to launch them.
+Two layers of resolution, tried in order:
+
+  1. Discovery index (app_discovery.py) — the REAL apps actually installed on
+     this machine, found by scanning Start Menu shortcuts + Get-StartApps.
+     This is the primary path: resolve_app_target() returns the exact launch
+     path MARK found on disk, e.g. Slack -> C:\\Users\\...\\AppData\\Local\\
+     slack\\slack.exe. Most consumer apps (Slack, Discord, Spotify) are never
+     on PATH and don't register in the Windows "App Paths" registry key that
+     os.startfile() checks — Start Menu shortcuts are the one thing every
+     installer creates, so this is what actually finds them.
+
+  2. Static curated list (this file) — a small set of common aliases (vscode
+     -> code, calc -> calculator) used as a fallback before the discovery
+     index has completed its first scan, or for generic PATH-resolvable names
+     the discovery scan wouldn't necessarily surface as a distinct app.
 
 Origin: live testing surfaced Whisper transcribing "notepad" as "node pad",
 "nodepad", and "note pad" across three separate utterances — each failed to
@@ -11,15 +24,17 @@ opened a Node.js REPL instead of Notepad). The fix matches the spoken phrase
 against known apps by string similarity and substitutes the closest one when
 confidence is high enough.
 
-Deliberately NOT exhaustive — only common desktop apps where a wrong guess is
-low-risk. Unknown app names fall through unchanged so arbitrary/uninstalled
-apps can still be attempted via the existing shutil.which/os.startfile path
-in desktop_executor.py. This module never blocks an action; it only improves
+Unknown app names fall through unchanged so arbitrary/uninstalled apps can
+still be attempted via the existing shutil.which/os.startfile path in
+desktop_executor.py. This module never blocks an action; it only improves
 the input before the existing resolution logic runs.
 """
 from __future__ import annotations
 
 import difflib
+import logging
+
+log = logging.getLogger("markiii.actions.aliases")
 
 # canonical spoken phrase → actual launch target (what shutil.which/os.startfile expects)
 # "node" is deliberately excluded — it's a real PATH binary (Node.js REPL) that
@@ -89,3 +104,42 @@ def resolve_app_name(raw_name: str) -> str:
         return _KNOWN_APPS[collapsed_map[match2[0]]]
 
     return raw_name
+
+
+_SOURCE_PRIORITY = {"shortcut": 0, "startapp_exe": 1, "uwp": 2}
+
+
+def resolve_app_target(raw_name: str) -> tuple[str, "str | None"]:
+    """
+    Discovery-aware resolution. Returns (display_name, exact_launch_target).
+
+    target is the real path/URI MARK found on disk for this app, or None if
+    no confident match exists in the discovery index — caller should fall
+    back to resolve_app_name() + its own shutil.which/os.startfile logic.
+    """
+    try:
+        from app.services.discovery.discovery_store import get_discovery_store
+        store = get_discovery_store()
+    except Exception as e:
+        log.debug("Discovery store unavailable: %s", e)
+        return raw_name, None
+
+    normalized = raw_name.lower().strip()
+    if not normalized:
+        return raw_name, None
+
+    matches = store.search_apps(normalized, limit=10)
+
+    if not matches:
+        all_names = store.get_all_app_names()
+        if all_names:
+            close = difflib.get_close_matches(normalized, all_names, n=1, cutoff=_CUTOFF)
+            if close:
+                matches = store.search_apps(close[0], limit=10)
+
+    if not matches:
+        return raw_name, None
+
+    best = min(matches, key=lambda a: _SOURCE_PRIORITY.get(a["source"], 9))
+    log.debug("Discovery resolved %r -> %s (%s)", raw_name, best["target"], best["source"])
+    return best["name"], best["target"]

@@ -29,6 +29,7 @@ mesh_devices.json
 mesh_diagnostics.json
 voice_diagnostics.json
 action_store.db
+discovery_store.db
 structured_memory.db
 repo_observer_state.json
 repo_observer_events.json

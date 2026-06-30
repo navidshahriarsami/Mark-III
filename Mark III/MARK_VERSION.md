@@ -9,10 +9,10 @@ Every new Claude session must read this file first.
 
 | Field | Value |
 |---|---|
-| **Software Version** | 0.20.1 |
-| **Architecture Version** | 3.1 (Governed Knowledge + Universal Actions) |
-| **Current Phase** | Phase 17 — Universal Action System |
-| **Current Milestone** | Voice-triggered actions with tiered, capability-based approval |
+| **Software Version** | 0.21.0 |
+| **Architecture Version** | 3.2 (Governed Knowledge + Universal Actions + Discovery) |
+| **Current Phase** | Phase 17B — Discovery Engine |
+| **Current Milestone** | MARK builds its own index of installed apps + personal files |
 | **Last Updated** | 2026-06-30 |
 
 ---

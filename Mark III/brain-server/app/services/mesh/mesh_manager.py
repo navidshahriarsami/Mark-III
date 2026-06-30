@@ -468,6 +468,10 @@ class MeshManager:
                         "invariants": cs.invariants, "summary": cs.summary,
                     })
 
+                elif self.path == "/discovery/stats":
+                    from app.services.discovery.discovery_store import get_discovery_store
+                    self._send(200, get_discovery_store().stats())
+
                 elif self.path.startswith("/memory/facts"):
                     from app.services.memory.fact_store import get_fact_store
                     from urllib.parse import parse_qs, urlparse
@@ -696,6 +700,15 @@ class MeshManager:
                     from app.services.memory.structured_memory import memory_stats
                     from app.services.memory.recall_diagnostics import diag
                     self._send(200, {"facts": memory_stats(), "recall": diag.summary()})
+
+                elif self.path == "/discovery/refresh":
+                    from app.services.discovery.discovery_scheduler import get_discovery_scheduler
+                    body = payload or {}
+                    result = get_discovery_scheduler().refresh_now(
+                        apps  = body.get("apps", True),
+                        files = body.get("files", True),
+                    )
+                    self._send(200, {"status": "refreshed", **result})
 
                 else:
                     self._send(404, {"error": "endpoint not found"})

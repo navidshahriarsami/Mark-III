@@ -17,7 +17,7 @@
 - Free Apple ID allows device testing (app expires every 7 days)
 - Production requires $99/year Apple Developer account
 
-## Phase 17B — Proactive Agent System Integration
+## Phase 17C — Proactive Agent System Integration
 
 **Objective:** Decide the integration path for the dormant Phase 13 Agent System
 (morning/evening/weekly/productivity/goal/career agents, scheduler, 3-channel

@@ -31,7 +31,7 @@ import time
 from typing import Optional
 
 from app.services.actions.base_action import Action, ActionResult, ActionType
-from app.services.actions.app_aliases import resolve_app_name
+from app.services.actions.app_aliases import resolve_app_name, resolve_app_target
 
 logger = logging.getLogger(__name__)
 
@@ -114,27 +114,54 @@ class DesktopExecutor(BaseExecutor):
     # ------------------------------------------------------------------
 
     def _launch_app(self, app_name: str, path: Optional[str] = None) -> ActionResult:
-        # Fuzzy-correct mis-transcribed app names ("node pad" -> "notepad")
-        # before attempting resolution. Falls through unchanged if no
-        # confident match — never blocks launching an unrecognized app.
-        resolved_name = resolve_app_name(app_name) if not path else app_name
-        target = path or resolved_name
+        # Explicit path always wins — caller already knows exactly what to run.
+        if path and os.path.exists(path):
+            try:
+                os.startfile(path) if _PLATFORM == "Windows" else subprocess.Popen([path])
+                return ActionResult(success=True, output=f"Launched '{app_name}'")
+            except Exception as exc:
+                return ActionResult(success=False, error=f"Could not launch '{app_name}': {exc}")
+
+        # 1. Discovery index — the real app MARK found installed on THIS machine
+        # (Start Menu shortcuts + Get-StartApps scan). Most consumer apps
+        # (Slack, Discord, Spotify) are never on PATH and don't register in
+        # the Windows "App Paths" key — this is what actually finds them.
+        display_name, discovered_target = resolve_app_target(app_name)
+        if discovered_target:
+            try:
+                if discovered_target.lower().startswith("shell:"):
+                    os.startfile(discovered_target)
+                elif _PLATFORM == "Darwin":
+                    subprocess.Popen(["open", discovered_target])
+                else:
+                    subprocess.Popen([discovered_target], shell=False)
+                return ActionResult(
+                    success=True, output=f"Launched '{display_name}'",
+                    metadata={"target": discovered_target, "source": "discovery"},
+                )
+            except Exception as exc:
+                logger.debug(
+                    "Discovery launch failed for %r -> %r, falling back: %s",
+                    app_name, discovered_target, exc,
+                )
+                # fall through to legacy resolution below
+
+        # 2. Fuzzy-corrected static alias + PATH/App Paths resolution
+        # (covers cases discovery hasn't indexed yet, or generic PATH binaries)
+        resolved_name = resolve_app_name(app_name)
+        target = resolved_name
         try:
             if _PLATFORM == "Windows":
-                if path and os.path.exists(path):
-                    os.startfile(path)
+                resolved = (
+                    shutil.which(resolved_name)
+                    or shutil.which(resolved_name.replace(" ", ""))
+                    or shutil.which(app_name)
+                    or shutil.which(app_name.replace(" ", ""))
+                )
+                if resolved:
+                    subprocess.Popen([resolved], shell=False)
                 else:
-                    # Try to resolve via where/which first
-                    resolved = (
-                        shutil.which(resolved_name)
-                        or shutil.which(resolved_name.replace(" ", ""))
-                        or shutil.which(app_name)
-                        or shutil.which(app_name.replace(" ", ""))
-                    )
-                    if resolved:
-                        subprocess.Popen([resolved], shell=False)
-                    else:
-                        os.startfile(resolved_name)   # fallback — may work for registered apps
+                    os.startfile(resolved_name)   # fallback — may work for registered apps
             elif _PLATFORM == "Darwin":
                 subprocess.Popen(["open", "-a", resolved_name])
             else:

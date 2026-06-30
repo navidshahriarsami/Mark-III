@@ -5,6 +5,21 @@ Format: `[Version] — Date — Summary`
 
 ---
 
+## [0.21.0] — 2026-06-30 — Discovery Engine
+
+**Type:** Major feature
+
+- New subsystem app/services/discovery/: MARK builds its own index of installed apps and personal files, in the background, on its own machine
+- app_discovery.py: PowerShell-based scan combining Start Menu shortcut resolution (.lnk via WScript.Shell COM, zero pip dependency) with Get-StartApps (UWP/Store apps) — finds apps shutil.which()/os.startfile() structurally cannot
+- Fixes the actual reported bug: "open Slack" now resolves to the real installed binary (C:\Users\...\AppData\Local\slack\slack.exe) instead of failing — most consumer apps install under %LOCALAPPDATA% and were never resolvable via PATH or the Windows App Paths registry key
+- file_discovery.py: indexes Desktop/Documents/Downloads/Pictures/Videos/Music/OneDrive into SQLite — 22,821 files indexed in 4s on the reference machine, search now single-digit milliseconds instead of a live filesystem walk per query
+- discovery_scheduler.py: background thread, initial scan 10s after boot, rescans every 30 minutes, manual trigger via POST /discovery/refresh
+- desktop_executor.py and file_executor.py try the discovery index first, fall back to existing resolution unchanged — no regression for apps/files outside indexed scope
+- GET /discovery/stats, POST /discovery/refresh mesh endpoints
+- ADR-0013 documents the architecture and scope decisions (which directories indexed, why not the entire filesystem)
+
+---
+
 ## [0.20.1] — 2026-06-30 — Action System Fixes from Live Testing
 
 **Type:** Bug fix
