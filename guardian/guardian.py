@@ -35,6 +35,8 @@ MOTION_AREA       = 1500     # (legacy) min changed-pixel-area for frame-diff mo
 MOTION_COOLDOWN_S = 30       # min seconds between notifications (anti-spam)
 RECORD_SECONDS    = 20       # clip length once a face is spotted
 WARMUP_FRAMES     = 30       # frames to let the camera boot-calibrate before we drive it
+FIRMWARE_WAKE_S   = 7.0      # seconds to let the camera's OWN wake movement (Smart
+                             # Adjustment face-search) play before the personality drives it
 
 # "Alive head" — 3-axis gimbal motion (pan/tilt/roll) + zoom-on-follow.
 # Re-enabled now that a cooler handles the servo heat. The gesture mix leans on
@@ -103,16 +105,19 @@ def camera_loop() -> None:
     faces: list = []
     _last_sent = {"pan": None, "tilt": None, "roll": None, "zoom": None}
 
-    # Let the Insta360's boot self-calibration finish before we drive the gimbal.
-    print("[guardian] letting camera calibrate...")
-    for _ in range(WARMUP_FRAMES):
-        cap.read()
+    # GOOD MORNING = the camera's OWN wake movement (Smart Adjustment: it pitches
+    # up/down to find you, then centers your face). We keep the video stream alive
+    # but send NO gimbal commands during this window, so the firmware's wake plays
+    # untouched. Then the personality takes over.
+    #   Requires in the Insta360 Link Controller app:
+    #     • Smart Adjustment  = ON   (so it does the wake movement)
+    #     • AI/subject tracking = OFF (so it stops fighting the personality after)
+    print("[guardian] letting the camera's own wake movement play...")
+    _wake_end = time.monotonic() + FIRMWARE_WAKE_S
+    while time.monotonic() < _wake_end:
+        cap.read()          # keep stream alive; do NOT drive the gimbal
         time.sleep(0.03)
-
-    # Good morning — play the wake greeting once, then normal idle takes over.
-    if LIFE_ENABLED:
-        pet.force("wake")
-        print("[guardian] good morning — wake gesture")
+    print("[guardian] wake done — personality taking over")
 
     while True:
         ok, frame = cap.read()
