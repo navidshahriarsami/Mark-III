@@ -68,6 +68,7 @@ _last_notify = 0.0
 _recording = False
 _armed = False               # disarmed by default — no alerts until "guardian" arms it
 _play = {"move": None}       # inbox: /do sets a named gesture; camera_loop plays it
+_life = {"on": bool(LIFE_ENABLED)}   # runtime: is the creature alive (moving)?
 CLIPS_DIR.mkdir(exist_ok=True)
 
 app = FastAPI(title="Guardian")
@@ -170,7 +171,7 @@ def camera_loop() -> None:
         h, w = frame.shape[:2]
 
         # Detect faces every 3rd frame with YuNet (fast DNN).
-        if LIFE_ENABLED and frame_no % 3 == 0:
+        if _life["on"] and frame_no % 3 == 0:
             detector.setInputSize((w, h))
             _n, dets = detector.detect(frame)
             faces = []
@@ -189,7 +190,7 @@ def camera_loop() -> None:
                 pass
 
         following = False
-        if LIFE_ENABLED:
+        if _life["on"]:
             # Drive the alive head. FOLLOW when a face is present, else WANDER.
             pan, tilt, roll, zoom, following = pet.update(faces, w, h)
             # Apply pan/tilt/roll/zoom at a LOW rate with a dead-band. Streaming
@@ -333,16 +334,26 @@ def ntfy_control_loop() -> None:
                     if evt.get("event") != "message":
                         continue
                     cmd = (evt.get("message") or "").strip().lower()
-                    if cmd in ("arm", "on", "activate", "guardian"):
+                    if cmd in ("wake", "start", "pet", "hello", "come", "alive", "wake up"):
+                        _life["on"] = True
+                        _play["move"] = "wake"          # good-morning greeting
+                        print("[guardian] creature WAKE (via ntfy)")
+                        _ntfy_ack("Your pet is awake 🐾")
+                    elif cmd in ("sleep", "rest", "freeze", "still", "nap"):
+                        _life["on"] = False
+                        print("[guardian] creature SLEEP (via ntfy)")
+                        _ntfy_ack("Your pet is resting 😴")
+                    elif cmd in ("arm", "activate", "guardian"):
                         _armed = True
                         print("[guardian] ARMED (via ntfy)")
                         _ntfy_ack("Guardian armed.")
-                    elif cmd in ("disarm", "off", "stop", "stand down"):
+                    elif cmd in ("disarm", "stand down"):
                         _armed = False
                         print("[guardian] DISARMED (via ntfy)")
                         _ntfy_ack("Guardian disarmed.")
                     elif cmd == "status":
-                        _ntfy_ack(f"Guardian is {'armed' if _armed else 'disarmed'}.")
+                        _ntfy_ack(f"Pet: {'awake' if _life['on'] else 'resting'} · "
+                                  f"Guard: {'armed' if _armed else 'disarmed'}")
                     elif cmd in ("help", "commands", "?"):
                         _ntfy_ack(_help_text())
         except Exception as e:
@@ -396,12 +407,14 @@ def get_addresses() -> tuple[str, str]:
 def _help_text() -> str:
     lan, tail = get_addresses()
     lines = [
-        "🛡  GUARDIAN — reply with one word:",
+        "🐾  YOUR PET — reply with one word:",
         "",
-        '  To guard your space   →  write "arm"',
-        '  To stand down         →  write "disarm"',
-        '  To check the state    →  write "status"',
-        '  To see this again     →  write "help"',
+        '  Wake the creature     →  write "wake"',
+        '  Let it rest           →  write "sleep"',
+        '  Guard your space      →  write "arm"',
+        '  Stand down            →  write "disarm"',
+        '  Check the state       →  write "status"',
+        '  See this again        →  write "help"',
         "",
         "📹  Watch live:",
     ]
@@ -511,7 +524,7 @@ def disarm():
 
 @app.get("/status")
 def status():
-    return {"armed": _armed, "recording": _recording, "life": bool(LIFE_ENABLED)}
+    return {"armed": _armed, "recording": _recording, "life": _life["on"]}
 
 
 # ── Play: trigger named gestures on demand ──────────────────────
