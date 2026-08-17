@@ -109,6 +109,11 @@ def camera_loop() -> None:
         cap.read()
         time.sleep(0.03)
 
+    # Good morning — play the wake greeting once, then normal idle takes over.
+    if LIFE_ENABLED:
+        pet.force("wake")
+        print("[guardian] good morning — wake gesture")
+
     while True:
         ok, frame = cap.read()
         if not ok:
@@ -463,7 +468,7 @@ def status():
 
 
 # ── Play: trigger named gestures on demand ──────────────────────
-_MOVES = ["plead", "sway", "investigate", "huh", "yes", "no", "eye", "center"]
+_MOVES = ["wake", "plead", "sway", "investigate", "huh", "yes", "no", "eye"]
 
 
 @app.post("/do")

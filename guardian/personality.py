@@ -128,6 +128,21 @@ class Personality:
             return [Waypoint(0.0, t, 0.10, 0.3, 2.5, tr=0.0),
                     Waypoint(0.0, 0.0, 0.10, 0.4, 3.0, tr=0.0)]
 
+        if name == "wake":        # GOOD MORNING — stretch, find you, greet, settle
+            up = _clamp(t + 26, TILT_MIN, TILT_MAX)
+            return [
+                Waypoint(p, up, 0.055, 0.8, 5.0),                              # 1. slow stretch UP (tilt)
+                Waypoint(p, LOOK_AT_YOU, 0.07, 0.4, 3.5),                      # 2. ease down to your level
+                Waypoint(_clamp(EYE_PAN + 32, PAN_MIN, PAN_MAX), LOOK_AT_YOU,
+                         0.10, 0.4, 3.5),                                      # 3. look around one way (pan)
+                Waypoint(_clamp(EYE_PAN - 32, PAN_MIN, PAN_MAX), LOOK_AT_YOU,
+                         0.10, 0.4, 3.5),                                      # 4. and the other (pan)
+                Waypoint(EYE_PAN, LOOK_AT_YOU, 0.10, 0.35, 3.0),              # 5. find you — center (pan)
+                Waypoint(EYE_PAN, LOOK_AT_YOU, 0.085, 1.1, 5.0, tr= ROLL_PUSH),  # 6. big HELLO head-tilt
+                Waypoint(EYE_PAN, LOOK_AT_YOU, 0.085, 1.1, 5.0, tr=-ROLL_PUSH),  # 7. and back (roll)
+                Waypoint(EYE_PAN, LOOK_AT_YOU, 0.085, 0.6, 3.0, tr=0.0),         # 8. settle, looking at you
+            ]
+
         # Character: mostly looks at YOU, pleads with roll, and reacts to
         # imagined sounds with fast snaps + freezes. Pan/tilt moves are BIG and
         # FAST; roll is the gentle signature. Stillness between moves keeps the
