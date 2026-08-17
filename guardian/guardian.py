@@ -76,21 +76,42 @@ app = FastAPI(title="Guardian")
 # ─────────────────────── Camera worker ─────────────────────────
 def _open_camera_blocking():
     """
-    Open the camera, retrying patiently until it delivers a frame. Handles both
-    boot timing (camera not enumerated yet) and unplug/replug (device re-appears
-    on a possibly different index). Returns an opened VideoCapture.
+    Open the REAL camera, retrying patiently until it delivers a full-resolution
+    frame. Handles boot timing and unplug/replug (the device can be slow to
+    re-enumerate on index 0). Critically, it rejects the 640x480 fallback stream
+    that some indices expose — that fallback delivers video but CANNOT drive the
+    gimbal, which is what left the creature stuck looking down after a replug.
     """
     attempt = 0
     while True:
-        for idx in (CAMERA_INDEX, 0, 1, 2):     # replug can move the index
+        # Preferred: the real 1280-wide device (has gimbal control). The Link
+        # sometimes defaults to a 640x480 stream (esp. after a replug), so we
+        # explicitly REQUEST 1280x720 before judging the frame.
+        for idx in (CAMERA_INDEX, 0, 1, 2):
             cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
-            ok, _f = (cap.read() if cap.isOpened() else (False, None))
-            if cap.isOpened() and ok:
-                print(f"[guardian] camera open on index {idx} (after {attempt} retries)")
+            if cap.isOpened():
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            ok, f = (cap.read() if cap.isOpened() else (False, None))
+            if ok and f is not None and f.shape[1] >= 1000:
+                # Warn if gimbal control is offline (replug can knock it out).
+                gimbal_ok = cap.get(cv2.CAP_PROP_ROLL) != -1
+                note = "" if gimbal_ok else "  [GIMBAL OFFLINE — replug the USB to restore]"
+                print(f"[guardian] camera open index {idx} {f.shape[1]}x{f.shape[0]} (after {attempt} retries){note}")
                 return cap
             cap.release()
         attempt += 1
-        print(f"[guardian] camera not ready (attempt {attempt}) — retrying in 3s...")
+        # Last resort after many tries: accept any working stream so we at least
+        # keep video, even if the gimbal can't be driven.
+        if attempt >= 6:
+            for idx in (CAMERA_INDEX, 0, 1, 2):
+                cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
+                ok, f = (cap.read() if cap.isOpened() else (False, None))
+                if ok and f is not None:
+                    print(f"[guardian] camera open (fallback, no gimbal?) index {idx}")
+                    return cap
+                cap.release()
+        print(f"[guardian] real camera not ready (attempt {attempt}) — retrying in 3s...")
         time.sleep(3)
 
 
