@@ -152,18 +152,24 @@ class Personality:
                     Waypoint(p, t, 0.085, 0.9, 4.0, tr=-a),
                     Waypoint(p, t, 0.08,  1.1, 4.0, tr=0.0)]
 
-        if name == "investigate": # notice → scan → "huh?" — one axis per step
-            tp   = _clamp(far(), PAN_MIN, PAN_MAX)                 # something over there
-            up   = _clamp(t + random.uniform(12, 20), TILT_MIN, TILT_MAX)
-            dn   = _clamp(t - random.uniform(22, 34), TILT_MIN, TILT_MAX)
+        if name == "investigate": # horizontal search → vertical scan → deep "huh?"
+            # Search both sides first. The final pan waypoint has a long dwell so
+            # the physical gimbal finishes turning before any tilt command begins.
+            reach = random.uniform(0.68, 0.88)
+            first_sign = random.choice([-1, 1])
+            p1 = (PAN_MAX if first_sign > 0 else PAN_MIN) * reach
+            p2 = (PAN_MIN if first_sign > 0 else PAN_MAX) * reach
+            up = _clamp(t + random.uniform(14, 22), TILT_MIN, TILT_MAX)
+            dn = _clamp(t - random.uniform(24, 36), TILT_MIN, TILT_MAX)
             lean = random.choice([-1, 1]) * ROLL_PUSH
             return [
-                Waypoint(tp, t,  0.20, 0.5, 3.0),                  # 1. turn to it (pure pan)
-                Waypoint(tp, up, 0.14, 0.3, 2.5),                  # 2. look up (pure tilt)
-                Waypoint(tp, dn, 0.14, 0.3, 2.5),                  # 3. look down — scanning
-                Waypoint(tp, t,  0.14, 0.35, 2.5),                 # 4. back to level
-                Waypoint(tp, t,  0.12, 1.8, 4.0, tr=lean),         # 5. full HUH roll, hold
-                Waypoint(tp, t,  0.12, 0.6, 2.5, tr=0.0),          # 6. settle
+                Waypoint(p1, t, 0.16, 0.45, 4.0),                  # 1. search one side (pan only)
+                Waypoint(p2, t, 0.13, 0.85, 5.0),                  # 2. search other side; stop pan
+                Waypoint(p2, up, 0.12, 0.25, 3.0),                 # 3. scan up (tilt only)
+                Waypoint(p2, dn, 0.11, 0.30, 3.5),                 # 4. scan down — "yes" shape
+                Waypoint(p2, t,  0.10, 0.80, 3.0),                 # 5. level; stop tilt completely
+                Waypoint(p2, t,  0.075, 2.4, 5.0, tr=lean),        # 6. deep, slow HUH roll + hold
+                Waypoint(p2, t,  0.065, 0.8, 4.0, tr=0.0),         # 7. unhurried return to level
             ]
 
         if name == "alert":       # heard something! fast snap, freeze, then dismiss

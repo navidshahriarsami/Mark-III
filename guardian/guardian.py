@@ -75,11 +75,22 @@ app = FastAPI(title="Guardian")
 def camera_loop() -> None:
     global _latest_jpeg, _last_notify, _recording
 
-    cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_DSHOW)  # DSHOW = fast open on Windows
-    if not cap.isOpened():
-        print(f"[guardian] ERROR: cannot open camera index {CAMERA_INDEX}")
-        return
-    print(f"[guardian] camera {CAMERA_INDEX} open")
+    # Open the camera, retrying patiently. At boot the USB camera often isn't
+    # enumerated yet when startup apps launch, so we wait for it rather than
+    # give up — this is what makes the creature reliably wake on power-on.
+    cap = None
+    attempt = 0
+    while True:
+        cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_DSHOW)
+        ok, _frame = (cap.read() if cap.isOpened() else (False, None))
+        if cap.isOpened() and ok:
+            break
+        attempt += 1
+        if cap is not None:
+            cap.release()
+        print(f"[guardian] camera not ready (attempt {attempt}) — retrying in 3s...")
+        time.sleep(3)
+    print(f"[guardian] camera {CAMERA_INDEX} open (after {attempt} retries)")
     _manual_cap["cap"] = cap   # expose handle for /look manual control
 
     # Face detector (YuNet DNN, OpenCV 5) + the "alive head" controller.
