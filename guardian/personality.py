@@ -48,10 +48,11 @@ ROLL_SIGN = 1.0     # flip to -1 if the head-cock leans the wrong way
 ZOOM_EASE = 0.10    # gentle lean-in / pull-out (slow so it's smooth, not jarring)
 
 # ── Follow feel ─────────────────────────────────────────────────────────────
-FOLLOW_GAIN = 26.0
-FOLLOW_EASE = 0.28
+FOLLOW_GAIN = 15.0    # gentler chase (was 26 — too twitchy up close)
+FOLLOW_EASE = 0.16    # smoother approach
 LOSE_FACE_S = 2.5
-DEADZONE    = 0.06
+DEADZONE    = 0.16    # ignore small face offsets so it doesn't fidget on micro-moves
+CLOSE_FRAC  = 0.30    # face wider than this fraction of frame = "you're close"
 
 # ── Idle "breathing" — subtle life even while holding still ─────────────────
 BREATH_AMP  = 0.7
@@ -262,15 +263,24 @@ class Personality:
             face = max(faces, key=lambda f: f.area)
             ex = (face.cx - frame_w / 2) / (frame_w / 2)
             ey = (face.cy - frame_h / 2) / (frame_h / 2)
+            close = (face.w / frame_w) > CLOSE_FRAC     # you're right up in its face
+
+            # When you're close, chase even less and settle — don't fidget on
+            # every micro-movement, and don't zoom in (that amplifies restlessness).
+            gain = FOLLOW_GAIN * (0.5 if close else 1.0)
+            ease = FOLLOW_EASE * (0.7 if close else 1.0)
+            dz   = DEADZONE   * (1.6 if close else 1.0)
+
             tp, tt = self.pan, self.tilt
-            if abs(ex) > DEADZONE:
-                tp = _clamp(self.pan + PAN_SIGN * FOLLOW_GAIN * ex, PAN_MIN, PAN_MAX)
-            if abs(ey) > DEADZONE:
-                tt = _clamp(self.tilt - TILT_SIGN * FOLLOW_GAIN * ey, TILT_MIN, TILT_MAX)
-            self.pan  += (tp - self.pan) * FOLLOW_EASE
-            self.tilt += (tt - self.tilt) * FOLLOW_EASE
+            if abs(ex) > dz:
+                tp = _clamp(self.pan + PAN_SIGN * gain * ex, PAN_MIN, PAN_MAX)
+            if abs(ey) > dz:
+                tt = _clamp(self.tilt - TILT_SIGN * gain * ey, TILT_MIN, TILT_MAX)
+            self.pan  += (tp - self.pan) * ease
+            self.tilt += (tt - self.tilt) * ease
             self.roll += (0.0 - self.roll) * FOLLOW_EASE       # level up — attentive
-            self.zoom += (FOLLOW_ZOOM - self.zoom) * ZOOM_EASE # lean in for a closer look
+            target_zoom = ZOOM_MIN if close else FOLLOW_ZOOM   # no zoom when already close
+            self.zoom += (target_zoom - self.zoom) * ZOOM_EASE
             return self.pan, self.tilt, self.roll, self.zoom, True
 
         if self.mode == "follow" and now - self._last_face < LOSE_FACE_S:
