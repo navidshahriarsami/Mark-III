@@ -74,25 +74,30 @@ app = FastAPI(title="Guardian")
 
 
 # ─────────────────────── Camera worker ─────────────────────────
+def _open_camera_blocking():
+    """
+    Open the camera, retrying patiently until it delivers a frame. Handles both
+    boot timing (camera not enumerated yet) and unplug/replug (device re-appears
+    on a possibly different index). Returns an opened VideoCapture.
+    """
+    attempt = 0
+    while True:
+        for idx in (CAMERA_INDEX, 0, 1, 2):     # replug can move the index
+            cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
+            ok, _f = (cap.read() if cap.isOpened() else (False, None))
+            if cap.isOpened() and ok:
+                print(f"[guardian] camera open on index {idx} (after {attempt} retries)")
+                return cap
+            cap.release()
+        attempt += 1
+        print(f"[guardian] camera not ready (attempt {attempt}) — retrying in 3s...")
+        time.sleep(3)
+
+
 def camera_loop() -> None:
     global _latest_jpeg, _last_notify, _recording
 
-    # Open the camera, retrying patiently. At boot the USB camera often isn't
-    # enumerated yet when startup apps launch, so we wait for it rather than
-    # give up — this is what makes the creature reliably wake on power-on.
-    cap = None
-    attempt = 0
-    while True:
-        cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_DSHOW)
-        ok, _frame = (cap.read() if cap.isOpened() else (False, None))
-        if cap.isOpened() and ok:
-            break
-        attempt += 1
-        if cap is not None:
-            cap.release()
-        print(f"[guardian] camera not ready (attempt {attempt}) — retrying in 3s...")
-        time.sleep(3)
-    print(f"[guardian] camera {CAMERA_INDEX} open (after {attempt} retries)")
+    cap = _open_camera_blocking()
     _manual_cap["cap"] = cap   # expose handle for /look manual control
 
     # Face detector (YuNet DNN, OpenCV 5) + the "alive head" controller.
@@ -119,11 +124,27 @@ def camera_loop() -> None:
         time.sleep(0.03)
     print("[guardian] wake done — personality taking over")
 
+    read_fails = 0
     while True:
         ok, frame = cap.read()
         if not ok:
-            time.sleep(0.1)
+            read_fails += 1
+            # A handful of dropped frames is normal; sustained failure means the
+            # camera was unplugged/reset — reopen it (handles unplug→replug).
+            if read_fails >= 25:
+                print("[guardian] camera lost — reconnecting...")
+                try:
+                    cap.release()
+                except Exception:
+                    pass
+                cap = _open_camera_blocking()
+                _manual_cap["cap"] = cap
+                _last_sent.update({"pan": None, "tilt": None, "roll": None, "zoom": None})
+                read_fails = 0
+            else:
+                time.sleep(0.1)
             continue
+        read_fails = 0
         frame_no += 1
         h, w = frame.shape[:2]
 
