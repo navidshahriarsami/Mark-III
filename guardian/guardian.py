@@ -322,9 +322,16 @@ def ntfy_control_loop() -> None:
     global _armed
     while True:
         try:
-            with requests.get(NTFY_CTRL_URL, stream=True, timeout=(10, 300)) as r:
+            # Short read timeout so a half-dead stream reconnects fast (ntfy sends
+            # keepalives ~every 45s; no data for 75s ⇒ stale ⇒ reconnect). Also
+            # force a fresh reconnect every few minutes so it can never sit on a
+            # silently-dead connection and miss commands.
+            conn_start = time.monotonic()
+            with requests.get(NTFY_CTRL_URL, stream=True, timeout=(10, 75)) as r:
                 print(f"[guardian] listening for control on ntfy topic: {NTFY_CTRL_TOPIC}")
                 for line in r.iter_lines():
+                    if time.monotonic() - conn_start > 240:
+                        break     # periodic proactive reconnect
                     if not line:
                         continue
                     try:
