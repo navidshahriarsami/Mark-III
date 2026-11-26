@@ -1217,8 +1217,8 @@ class AlwaysListeningLoop:
         _startup_complete.wait(timeout=15.0)
         log.info("Always-listening mode active — no wake word required")
 
-        # Startup greeting: time of day + weather + system status
-        self._speak_startup_greeting()
+        # Startup greeting disabled
+        # self._speak_startup_greeting()
 
         while self._running:
             # Drain special commands (status, shutdown, tray actions)
